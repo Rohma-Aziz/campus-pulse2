@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Community Feed - CampusPulse{% endblock %}
+{% block content %}
+<h3 class="mb-3 text-center">Campus Community Feed</h3>
+
+<!-- Category filter -->
+<div class="mb-3 d-flex flex-wrap gap-2 justify-content-center">
+    <a class="btn btn-sm {{ 'btn-primary' if not category else 'btn-outline-primary' }}"
+       href="{{ url_for('feed.view_feed') }}">All</a>
+    {% for c in CATEGORIES %}
+    <a class="btn btn-sm {{ 'btn-primary' if category == c else 'btn-outline-primary' }}"
+       href="{{ url_for('feed.view_feed', category=c) }}">{{ c }}</a>
+    {% endfor %}
+</div>
+
+<!-- Create post -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Share a query, complaint, event feedback or idea</h5>
+        <form action="{{ url_for('feed.create_post') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <select name="category" class="form-select" required>
+                    <option value="" disabled selected>Select category</option>
+                    {% for c in postable %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="mb-2">
+                <textarea name="content" class="form-control" rows="3" maxlength="{{ post_max }}"
+                          placeholder="What's on your mind regarding the campus?" required></textarea>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="anonymous" id="anon">
+                <label class="form-check-label small" for="anon">Post anonymously (other students won't see my name)</label>
+            </div>
+            <button class="btn btn-primary w-100">Post to Campus</button>
+        </form>
+    </div>
+</div>
+
+<!-- Posts -->
+{% for post in posts %}
+<div class="card shadow-sm mb-3" id="post-{{ post.id }}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <span class="badge {{ 'bg-warning text-dark' if post.category == 'Notices' else 'bg-secondary' }} mb-2">{{ post.category }}</span>
+                <div class="small text-muted">
+                    {% if post.is_anonymous %}
+                        Anonymous{% if current_user.is_admin %} (admin view: {{ post.author.name }}){% endif %}
+                    {% else %}{{ post.author.name }}{% endif %}
+                    &middot; {{ post.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+            </div>
+            {% if post.user_id == current_user.id or current_user.is_admin %}
+            <form action="{{ url_for('feed.delete_post', post_id=post.id) }}" method="POST"
+                  onsubmit="return confirm('Delete this post?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="page" value="{{ pagination.page }}">
+                <input type="hidden" name="category_filter" value="{{ category or '' }}">
+                <button class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <p class="card-text fs-5 mt-2" style="white-space: pre-wrap;">{{ post.content }}</p>
+
+        <!-- Like + report -->
+        <div class="d-flex gap-2 align-items-center">
+            <form action="{{ url_for('feed.toggle_like', post_id=post.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="page" value="{{ pagination.page }}">
+                <input type="hidden" name="category_filter" value="{{ category or '' }}">
+                <button class="btn btn-sm {{ 'btn-primary' if post.id in liked else 'btn-outline-primary' }}">
+                    {{ 'Liked' if post.id in liked else 'Like' }} ({{ post.likes|length }})
+                </button>
+            </form>
+            {% if post.user_id != current_user.id %}
+                {% if post.id in reported %}
+                    <span class="small text-muted">Reported</span>
+                {% else %}
+                <form action="{{ url_for('feed.report_post', post_id=post.id) }}" method="POST" class="d-flex gap-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="page" value="{{ pagination.page }}">
+                    <input type="hidden" name="category_filter" value="{{ category or '' }}">
+                    <select name="reason" class="form-select form-select-sm" required>
+                        <option value="" disabled selected>Report...</option>
+                        {% for r in report_reasons %}<option>{{ r }}</option>{% endfor %}
+                    </select>
+                    <button class="btn btn-sm btn-outline-secondary">Send</button>
+                </form>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <hr>
+        <h6>Responses &amp; Comments ({{ post.comments|length }})</h6>
+        {% for comment in post.comments %}
+        <div class="bg-light p-2 rounded mb-2">
+            <p class="mb-1 small" style="white-space: pre-wrap;">{{ comment.comment_text }}</p>
+            <small class="text-muted" style="font-size: 0.75rem;">
+                {% if comment.is_official %}<span class="badge bg-primary">Admin response</span>{% endif %}
+                {{ comment.author.name }} &middot; {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </small>
+        </div>
+        {% endfor %}
+
+        <form action="{{ url_for('feed.add_comment', post_id=post.id) }}" method="POST" class="mt-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="page" value="{{ pagination.page }}">
+            <input type="hidden" name="category_filter" value="{{ category or '' }}">
+            <div class="input-group">
+                <input type="text" name="comment_text" class="form-control form-control-sm"
+                       maxlength="{{ comment_max }}" placeholder="Write a response..." required>
+                <button class="btn btn-outline-secondary btn-sm">Reply</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<p class="text-center text-muted">No posts here yet. Be the first to share something!</p>
+{% endfor %}
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center">
+    {% if pagination.has_prev %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('feed.view_feed', page=pagination.prev_num, category=category) }}">&laquo; Newer</a>
+    {% else %}<span></span>{% endif %}
+    <span class="small text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('feed.view_feed', page=pagination.next_num, category=category) }}">Older &raquo;</a>
+    {% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
