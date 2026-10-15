@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
 import os
 import click
 from flask import Flask, g, redirect, render_template, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 
+load_dotenv()
 db = SQLAlchemy()
 csrf = CSRFProtect()
 
@@ -13,7 +15,13 @@ def create_app():
 
     # Configuration (settings stay here, no config.py needed)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-only-change-me')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///campus_pulse.db')  # Or MySQL URI
+
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        "connect_args": {"ssl": {"ca": os.path.join(base_dir, "ca.pem")}}
+    }
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
