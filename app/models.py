@@ -62,6 +62,12 @@ class Comment(db.Model):
     comment_text = db.Column(db.Text, nullable=False)
     is_official = db.Column(db.Boolean, nullable=False, default=False)  # admin response
     created_at = db.Column(db.DateTime, default=utcnow)
+    reports = db.relationship("CommentReport", backref="comment",
+                              cascade="all, delete-orphan")
+
+    @property
+    def is_hidden(self):
+        return len(self.reports) >= 3
 
 
 class Like(db.Model):
@@ -80,3 +86,15 @@ class Report(db.Model):
     reason = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow)
     __table_args__ = (db.UniqueConstraint("post_id", "user_id", name="uq_report_once"),)
+
+class CommentReport(db.Model):
+    __tablename__ = "comment_reports"
+
+    id = db.Column(db.Integer, primary_key=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey("comments.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint("comment_id", "user_id", name="uq_comment_report_once"),
+    )

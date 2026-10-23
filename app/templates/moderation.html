@@ -1,49 +1,49 @@
 {% extends "base.html" %}
-{% block title %}Moderation - CampusPulse{% endblock %}
 {% block content %}
-<h3 class="mb-3">Moderation</h3>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 style="color: var(--primary-dark); font-weight: 700;">Content Moderation Queue</h3>
+    <span class="badge bg-warning text-dark px-3 py-2">Flagged Items: {{ flagged_posts|length }}</span>
+  </div>
 
-{% macro action(endpoint, post_id, label, style) %}
-<form action="{{ url_for(endpoint, post_id=post_id) }}" method="POST" class="d-inline"
-      {% if endpoint == 'admin.delete_post' %}onsubmit="return confirm('Delete permanently?');"{% endif %}>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button class="btn btn-sm btn-{{ style }}">{{ label }}</button>
-</form>
-{% endmacro %}
+  {% if flagged_posts %}
+    {% for item in flagged_posts %}
+    <div class="card p-3 mb-3" style="border-left: 5px solid #ffc107;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge badge-category">{{ item.category }}</span>
+        <small class="text-muted">
+          Author: {{ item.author.username }} (ID: {{ item.user_id }}) | Reports: {{ item.report_count }}
+        </small>
+      </div>
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h5>Activity by category</h5>
-        {% if stats %}
-        <table class="table table-sm mb-0">
-            <thead><tr><th>Category</th><th>Posts</th><th>Comments</th></tr></thead>
-            <tbody>{% for c, p, cm in stats %}<tr><td>{{ c }}</td><td>{{ p }}</td><td>{{ cm }}</td></tr>{% endfor %}</tbody>
-        </table>
-        {% else %}<p class="text-muted mb-0">No activity yet.</p>{% endif %}
+      <p class="my-2" style="font-size: 1.05rem; color: var(--primary-dark);">
+        "{{ item.content }}"
+      </p>
+
+      {% if item.flag_reason %}
+      <div class="alert alert-light p-2 text-danger small mb-3">
+        <strong>Flag Reason:</strong> {{ item.flag_reason }}
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-2 justify-content-end pt-2 border-top">
+       <form action="{{ url_for('admin.approve_post', post_id=item.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-success">✓ Approve (Make Visible)</button>
+        </form>
+
+        
+        <form action="{{ url_for('admin.remove_post', post_id=item.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-danger">✕ Remove (Hide Content)</button>
+        </form>
+      </div>
     </div>
+    {% endfor %}
+  {% else %}
+    <div class="card p-5 text-center">
+      <h5 class="text-muted">🎉 Moderation queue is clean! No flagged or reported posts.</h5>
+    </div>
+  {% endif %}
 </div>
-
-<h5>Reported posts</h5>
-{% for post, n in reported %}
-<div class="card shadow-sm mb-3"><div class="card-body">
-    <span class="badge bg-secondary">{{ post.category }}</span>
-    <span class="badge bg-danger">{{ n }} report{{ 's' if n != 1 }}</span>
-    <p class="mt-2 mb-1" style="white-space: pre-wrap;">{{ post.content }}</p>
-    <p class="small text-muted">By {{ post.author.name }}{% if post.is_anonymous %} (posted anonymously){% endif %}
-        &middot; Reasons: {{ post.reports|map(attribute='reason')|join(', ') }}</p>
-    {{ action('admin.hide_post', post.id, 'Hide', 'warning') }}
-    {{ action('admin.dismiss_reports', post.id, 'Dismiss reports', 'outline-secondary') }}
-    {{ action('admin.delete_post', post.id, 'Delete', 'danger') }}
-</div></div>
-{% else %}<p class="text-muted">Nothing reported.</p>{% endfor %}
-
-<h5 class="mt-4">Hidden posts</h5>
-{% for post in hidden %}
-<div class="card shadow-sm mb-3"><div class="card-body">
-    <span class="badge bg-secondary">{{ post.category }}</span>
-    <p class="mt-2 mb-1" style="white-space: pre-wrap;">{{ post.content }}</p>
-    {{ action('admin.unhide_post', post.id, 'Restore', 'success') }}
-    {{ action('admin.delete_post', post.id, 'Delete', 'danger') }}
-</div></div>
-{% else %}<p class="text-muted">No hidden posts.</p>{% endfor %}
 {% endblock %}
