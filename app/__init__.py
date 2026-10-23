@@ -8,12 +8,12 @@ from flask_wtf.csrf import CSRFProtect
 load_dotenv()
 db = SQLAlchemy()
 csrf = CSRFProtect()
-
-
+db_url = os.environ.get("DATABASE_URL", "sqlite:///campus_pulse.db")
 def create_app():
     app = Flask(__name__)
 
     # Configuration (settings stay here, no config.py needed)
+    
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-only-change-me')
 
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
