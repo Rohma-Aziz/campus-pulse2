@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h2 class="text-xl font-bold text-navy">Feedback Analytics</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="text-sm py-1.5 px-3 bg-tealDark text-white rounded-lg hover:bg-navy">
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Score Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 text-center">
+        <div class="bg-bgLight p-3 rounded-xl border">
+            <span class="text-sm text-gray-500">Satisfaction</span>
+            <div class="text-2xl font-bold text-tealDark">{{ avg_rating }} / 5</div>
+        </div>
+        <div class="bg-bgLight p-3 rounded-xl border">
+            <span class="text-sm text-gray-500">Total Feedback</span>
+            <div class="text-2xl font-bold text-navy">{{ total_feedback }}</div>
+        </div>
+        <div class="bg-bgLight p-3 rounded-xl border col-span-2 md:col-span-1">
+            <span class="text-sm text-gray-500">Resolved Rate</span>
+            <div class="text-2xl font-bold text-emerald-600">{{ resolved_rate }}%</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid md:grid-cols-2 gap-4 mb-5">
+        <div class="bg-bgLight p-4 rounded-xl border">
+            <h3 class="text-sm font-bold text-navy mb-2">Satisfaction By Department</h3>
+            <div class="h-48"><canvas id="deptChart"></canvas></div>
+        </div>
+        <div class="bg-bgLight p-4 rounded-xl border">
+            <h3 class="text-sm font-bold text-navy mb-2">Issues By Category</h3>
+            <div class="h-48"><canvas id="categoryChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Key Insights -->
+    <div class="bg-navy text-white p-4 rounded-xl text-sm space-y-1.5">
+        <h3 class="font-bold text-tealLight mb-1"><i class="fa-solid fa-lightbulb"></i> Key Insights</h3>
+        {% for insight in insights %}
+            <p>&bull; {{ insight }}</p>
+        {% else %}
+            <p class="text-gray-300">Not enough data yet to generate insights.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Data comes from the Flask backend
+    const deptLabels = {{ dept_labels|tojson }};
+    const deptScores = {{ dept_scores|tojson }};
+    const catLabels  = {{ cat_labels|tojson }};
+    const catCounts  = {{ cat_counts|tojson }};
+
+    new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+        data: {
+            labels: deptLabels,
+            datasets: [{
+                label: 'Satisfaction Score (1-5)',
+                data: deptScores,
+                backgroundColor: ['#39B7A5', '#216B83', '#142D4E']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { min: 0, max: 5 } }
+        }
+    });
+
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: catLabels,
+            datasets: [{
+                label: 'Number of Issues',
+                data: catCounts,
+                backgroundColor: ['#39B7A5', '#216B83', '#142D4E', '#F59E0B']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+</script>
+{% endblock %}

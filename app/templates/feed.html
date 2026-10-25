@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Community Feed{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b">
+        <h2 class="text-xl font-bold text-navy"><i class="fa-solid fa-users text-tealLight mr-1"></i> Community Feed</h2>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="text-sm text-gray-500 hover:text-navy">&larr; Dashboard</a>
+        {% else %}
+            <a href="{{ url_for('student_dashboard') }}" class="text-sm text-gray-500 hover:text-navy">&larr; Dashboard</a>
+        {% endif %}
+    </div>
+
+    <!-- Create New Post -->
+    <form method="POST" action="{{ url_for('add_post') }}" class="bg-bgLight p-3 rounded-xl border mb-4 text-sm space-y-2">
+        <textarea name="text" required rows="2" placeholder="Write a query or complaint for peer discussion..."
+                  class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight resize-none"></textarea>
+        <div class="flex justify-between items-center">
+            <select name="tag" class="p-1.5 border rounded bg-white" aria-label="Post tag">
+                <option value="General">General</option>
+                <option value="Hostel">Hostel</option>
+                <option value="Wi-Fi">Wi-Fi</option>
+                <option value="Library">Library</option>
+                <option value="Cafe">Cafe</option>
+            </select>
+            <button type="submit" class="py-1.5 px-4 bg-tealDark text-white font-bold rounded-lg hover:bg-navy">
+                Post
+            </button>
+        </div>
+    </form>
+
+    <!-- Posts -->
+    <div class="space-y-4">
+        {% for post in posts %}
+        <article class="border p-4 rounded-xl space-y-2 bg-white">
+            <div class="flex justify-between items-center text-sm">
+                <span class="font-bold text-navy">
+                    {{ post.user_name }}{% if post.department %} ({{ post.department }}){% endif %}
+                    &bull; <span class="text-gray-400 font-normal text-xs">{{ post.created_at.strftime('%d %b, %I:%M %p') if post.created_at else '' }}</span>
+                </span>
+                <span class="px-2 py-0.5 bg-tealLight/20 text-tealDark rounded text-xs font-bold">{{ post.tag }}</span>
+            </div>
+            <p class="text-sm text-gray-800">{{ post.text }}</p>
+
+            <div class="space-y-1.5 pt-2 border-t">
+                {% for comment in post.comments %}
+                    <div class="bg-gray-100 p-2 rounded text-xs text-gray-700">
+                        <strong>{{ comment.user_name }}:</strong> {{ comment.text }}
+                        <span class="text-gray-400 ml-1">&bull; {{ comment.created_at.strftime('%d %b, %I:%M %p') if comment.created_at else '' }}</span>
+                    </div>
+                {% endfor %}
+
+                <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}" class="flex gap-2 pt-1">
+                    <input type="text" name="text" required placeholder="Write a reply..."
+                           class="w-full text-sm p-1.5 border rounded focus:outline-none focus:ring-2 focus:ring-tealLight" aria-label="Reply">
+                    <button type="submit" class="px-3 py-1 bg-tealDark text-white text-sm rounded hover:bg-navy">Reply</button>
+                </form>
+            </div>
+        </article>
+        {% else %}
+        <p class="text-center text-gray-400 text-sm py-6">No posts yet. Be the first to post!</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
