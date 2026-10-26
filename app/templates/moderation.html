@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 style="color: var(--primary-dark); font-weight: 700;">Content Moderation Queue</h3>
+    <span class="badge bg-warning text-dark px-3 py-2">Flagged Items: {{ flagged_posts|length }}</span>
+  </div>
+
+  {% if flagged_posts %}
+    {% for item in flagged_posts %}
+    <div class="card p-3 mb-3" style="border-left: 5px solid #ffc107;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge badge-category">{{ item.category }}</span>
+        <small class="text-muted">
+          Author: {{ item.author.username }} (ID: {{ item.user_id }}) | Reports: {{ item.report_count }}
+        </small>
+      </div>
+
+      <p class="my-2" style="font-size: 1.05rem; color: var(--primary-dark);">
+        "{{ item.content }}"
+      </p>
+
+      {% if item.flag_reason %}
+      <div class="alert alert-light p-2 text-danger small mb-3">
+        <strong>Flag Reason:</strong> {{ item.flag_reason }}
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-2 justify-content-end pt-2 border-top">
+       <form action="{{ url_for('admin.approve_post', post_id=item.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-success">✓ Approve (Make Visible)</button>
+        </form>
+
+        
+        <form action="{{ url_for('admin.remove_post', post_id=item.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-danger">✕ Remove (Hide Content)</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="card p-5 text-center">
+      <h5 class="text-muted">🎉 Moderation queue is clean! No flagged or reported posts.</h5>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
