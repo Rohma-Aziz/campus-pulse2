@@ -24,7 +24,7 @@
     </script>
     {% block head %}{% endblock %}
 </head>
-<body class="bg-bgLight text-gray-800 font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-bgLight text-gray-800 font-sans min-h-screen flex flex-col">
 
     <!-- HEADER -->
     <header class="bg-navy text-white p-4 shadow-md sticky top-0 z-50">
@@ -34,34 +34,37 @@
                 <div class="w-10 h-10 bg-tealLight rounded-xl flex items-center justify-center font-bold text-navy text-xl">CP</div>
                 <div>
                     <h1 class="text-lg font-bold">CampusPulse</h1>
-                    <p class="text-xs text-tealLight">Feedback &amp; Analytics Portal</p>
+                    <p class="text-xs text-tealLight">Feedback &amp; Community Portal</p>
                 </div>
             </a>
 
-            <nav class="flex flex-wrap items-center gap-2 text-sm">
-                <a href="{{ url_for('home') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Home</a>
-
-                {% if session.get('user_id') %}
-                    {% if session.get('role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Dashboard</a>
-                        <a href="{{ url_for('manage_issues') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Issues</a>
-                        <a href="{{ url_for('analytics') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Analytics</a>
-                    {% else %}
-                        <a href="{{ url_for('student_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Dashboard</a>
-                        <a href="{{ url_for('submit_feedback') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Submit</a>
-                        <a href="{{ url_for('my_submissions') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">My Submissions</a>
+            <nav class="flex flex-wrap items-center justify-center gap-2 text-sm">
+                {% if current_user %}
+                    <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
+                        <i class="fa-solid fa-comments mr-1"></i> Feed
+                    </a>
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.moderation') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
+                            <i class="fa-solid fa-shield-halved mr-1"></i> Moderation
+                        </a>
                     {% endif %}
-                    <a href="{{ url_for('feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Feed</a>
-                    <a href="{{ url_for('logout') }}" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded transition font-medium">Logout</a>
+                    <span class="px-2 text-tealLight hidden sm:inline">
+                        <i class="fa-solid fa-user mr-1"></i>{{ current_user.name }}{% if current_user.is_admin %} (Admin){% endif %}
+                    </span>
+                    <form method="POST" action="{{ url_for('auth.logout') }}" class="inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded transition font-medium">Logout</button>
+                    </form>
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Login</a>
-                    <a href="{{ url_for('signup') }}" class="px-3 py-1.5 bg-tealLight text-navy hover:bg-white rounded transition font-medium">Sign Up</a>
+                    <a href="{{ url_for('home') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Home</a>
+                    <a href="{{ url_for('auth.login') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Login</a>
+                    <a href="{{ url_for('auth.signup') }}" class="px-3 py-1.5 bg-tealLight text-navy hover:bg-white rounded transition font-medium">Sign Up</a>
                 {% endif %}
             </nav>
         </div>
     </header>
 
-    <!-- FLASH MESSAGES -->
+    <!-- FLASH MESSAGES (success = green, danger = red, warning = amber, info = blue) -->
     <div class="max-w-2xl w-full mx-auto px-4 pt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
@@ -87,20 +90,27 @@
     </div>
 
     <!-- PAGE CONTENT -->
-    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow flex items-center justify-center">
+    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow flex justify-center">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- FOOTER -->
     <footer class="bg-navy text-gray-400 text-xs py-3 text-center">
         CampusPulse Minor Project &copy; 2026 | B.Tech AIDS Team
     </footer>
 
     <script>
-        // Flash messages auto-hide after 5 seconds
+        // Flash messages auto-hide after 6 seconds
         setTimeout(function () {
             document.querySelectorAll('.flash-msg').forEach(function (el) { el.remove(); });
-        }, 5000);
+        }, 6000);
+
+        // Show timestamps in the viewer's local time (server stores UTC)
+        document.querySelectorAll('time[data-utc]').forEach(function (el) {
+            var d = new Date(el.dataset.utc);
+            if (!isNaN(d)) {
+                el.textContent = d.toLocaleString([], { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>
