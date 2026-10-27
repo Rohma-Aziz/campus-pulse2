@@ -28,10 +28,12 @@ def create_app():
     from app.auth import auth_bp
     from app.feed import feed_bp
     from app.admin import admin_bp
+    from app.routes.analytics_routes import analytics_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(feed_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(analytics_bp)
 
     @app.before_request
     def load_user():

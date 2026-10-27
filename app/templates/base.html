@@ -13,6 +13,7 @@
         <ul class="navbar-nav ms-auto align-items-center">
             {% if current_user %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('feed.view_feed') }}">Feed</a></li>
+                 <li class="nav-item"><a class="nav-link" href="{{ url_for('feed.analytics_dashboard') }}">Dashboard</a></li>
                 {% if current_user.is_admin %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.moderation') }}">Moderation</a></li>
                 {% endif %}
@@ -29,6 +30,15 @@
             {% endif %}
         </ul>
     </div>
+    <!-- Locate this section in your base.html navbar -->
+<div class="flex items-center space-x-4">
+    <!-- Change the static text or broken span to this working link -->
+    <a href="{{ url_for('auth.profile') }}" class="text-gray-700 hover:text-indigo-600 font-medium transition flex items-center space-x-1">
+        <span>👤</span>
+        <span>{{ current_user.username if current_user.is_authenticated else 'Rohma' }}</span>
+    </a>
+    <a href="{{ url_for('auth.logout') }}" class="text-red-600 hover:text-red-800 text-sm font-medium">Logout</a>
+</div>
 </nav>
 
 <div class="container pb-5" style="max-width: 800px;">

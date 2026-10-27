@@ -4,6 +4,7 @@ from sqlalchemy import select
 from app import db
 from app.models import CATEGORIES, REPORT_REASONS, Comment, Like, Post, Report
 from app.utils import login_required
+from app.analytics import process_analytics_data
 
 feed_bp = Blueprint("feed", __name__, url_prefix="/feed")
 
@@ -133,3 +134,10 @@ def delete_post(post_id):
     db.session.commit()
     flash("Post deleted.", "info")
     return back_to_feed()
+
+@feed_bp.route('/analytics')
+@login_required
+def analytics_dashboard():
+    analytics_data = process_analytics_data()
+    # **unpacking use karne se 'metrics', 'insights', aur 'chart_data' direct mil jayenge
+    return render_template('analytics.html', **analytics_data)
