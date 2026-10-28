@@ -1,0 +1,19 @@
+{% macro status_badge(status) %}
+<span class="badge {{ {'Pending': 'bg-warning text-dark', 'In Progress': 'bg-info text-dark', 'Resolved': 'bg-success'}.get(status, 'bg-secondary') }}">{{ status }}</span>
+{% endmacro %}
+
+{% macro stars(rating) %}<span class="text-warning" title="{{ rating }} out of 5">{{ '★' * rating }}{{ '☆' * (5 - rating) }}</span>{% endmacro %}
+
+{% macro pager(pagination, endpoint) %}
+{% if pagination.pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center mt-3">
+    {% if pagination.has_prev %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ url_for(endpoint, page=pagination.prev_num, **kwargs) }}">&laquo; Newer</a>
+    {% else %}<span></span>{% endif %}
+    <span class="small text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ url_for(endpoint, page=pagination.next_num, **kwargs) }}">Older &raquo;</a>
+    {% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}

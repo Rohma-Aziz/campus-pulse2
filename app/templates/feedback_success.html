@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars %}
+{% block title %}Feedback Submitted - CampusPulse{% endblock %}
+{% block content %}
+<div class="card p-4 mx-auto text-center" style="border-top: 4px solid var(--accent-teal);">
+    <div style="font-size: 3rem; color: var(--accent-teal);">&#10003;</div>
+    <h4 class="text-success">Feedback Submitted Successfully!</h4>
+    <table class="table table-sm text-start mt-3 mb-4">
+        <tr><th>Submission ID</th><td>CP-{{ '%04d'|format(item.id) }}</td></tr>
+        <tr><th>Category</th><td>{{ item.category }}</td></tr>
+        <tr><th>Title</th><td>{{ item.title }}</td></tr>
+        <tr><th>Rating</th><td>{{ stars(item.rating) }} ({{ item.rating }} / 5)</td></tr>
+        <tr><th>Submitted</th><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+    </table>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary flex-fill" href="{{ url_for('feed.view_feed') }}">Back to Feed</a>
+        <a class="btn btn-primary flex-fill" href="{{ url_for('feedback.my_submissions') }}">View My Submissions</a>
+    </div>
+</div>
+{% endblock %}

@@ -72,7 +72,11 @@
             {% if current_user %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('feed.view_feed') }}">Feed</a></li>
                 {% if current_user.is_admin %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.manage') }}">Manage Issues</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.moderation') }}">Moderation</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.submit') }}">Submit Feedback</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.my_submissions') }}">My Submissions</a></li>
                 {% endif %}
                 <li class="nav-item text-white-50 small mx-2">{{ current_user.name }}</li>
                 <li class="nav-item">
