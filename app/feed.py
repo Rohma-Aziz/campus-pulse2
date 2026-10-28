@@ -1,10 +1,11 @@
 from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, url_for
 from sqlalchemy import select
-
+from sqlalchemy.exc import IntegrityError
 from app import db
-from app.models import CATEGORIES, REPORT_REASONS, Comment, Like, Post, Report
-from app.utils import login_required
+from app.models import CATEGORIES, REPORT_REASONS, Comment, CommentReport, Like, Post, Report
+from app.utils import login_required, moderate
 from app.analytics import process_analytics_data
+
 
 feed_bp = Blueprint("feed", __name__, url_prefix="/feed")
 
@@ -22,11 +23,11 @@ def clean_category(value):
 
 
 def back_to_feed(post_id=None):
-    """Return to the same page/filter. Only validated values go into the URL."""
-    category = clean_category(request.form.get("category_filter"))
-    page = request.form.get("page", 1, type=int)
-    return redirect(url_for("feed.view_feed", category=category, page=page,
-                            _anchor=f"post-{post_id}" if post_id else None))
+    """Return to the exact page/filter the user was on."""
+    ref = request.referrer
+    if ref and ref.startswith(request.host_url):
+        return redirect(ref)
+    return redirect(url_for("feed.view_feed"))
 
 
 def visible_post_or_404(post_id):
@@ -73,11 +74,23 @@ def create_post():
     elif not POST_MIN <= len(content) <= POST_MAX:
         flash(f"Posts must be {POST_MIN} to {POST_MAX} characters.", "danger")
     else:
-        post = Post(user_id=g.user.id, category=category, content=content,
-                    is_anonymous=bool(request.form.get("anonymous")))
+        is_flagged, reason = moderate(content)
+
+        post = Post(
+            user_id=g.user.id,
+            category=category,
+            content=content,
+            is_anonymous=bool(request.form.get("anonymous")),
+            is_hidden=is_flagged,  # hidden automatically if profanity is found
+        )
         db.session.add(post)
         db.session.commit()
-        flash("Your post has been shared with the campus!", "success")
+
+        if is_flagged:
+            flash("Your post was flagged and hidden for admin review.", "warning")
+        else:
+            flash("Your post has been shared with the campus!", "success")
+
     return redirect(url_for("feed.view_feed"))
 
 
@@ -101,6 +114,8 @@ def add_comment(post_id):
     text = (request.form.get("comment_text") or "").strip()
     if not 1 <= len(text) <= COMMENT_MAX:
         flash(f"Comments must be 1 to {COMMENT_MAX} characters.", "danger")
+    elif moderate(text)[0]:
+        flash("Your comment contains language that isn't allowed.", "warning")
     else:
         db.session.add(Comment(post_id=post.id, user_id=g.user.id, comment_text=text,
                                is_official=g.user.is_admin))
@@ -120,7 +135,13 @@ def report_post(post_id):
     else:
         db.session.add(Report(post_id=post.id, user_id=g.user.id, reason=reason))
         db.session.commit()
-        flash("Thanks. An admin will review this post.", "success")
+
+        if Report.query.filter_by(post_id=post.id).count() >= 3:
+            post.is_hidden = True
+            db.session.commit()
+            flash("Thanks. This post was hidden after multiple reports.", "success")
+        else:
+            flash("Thanks. An admin will review this post.", "success")
     return back_to_feed(post.id)
 
 
@@ -135,9 +156,44 @@ def delete_post(post_id):
     flash("Post deleted.", "info")
     return back_to_feed()
 
+
 @feed_bp.route('/analytics')
 @login_required
 def analytics_dashboard():
     analytics_data = process_analytics_data()
-    # **unpacking use karne se 'metrics', 'insights', aur 'chart_data' direct mil jayenge
     return render_template('analytics.html', **analytics_data)
+
+
+@feed_bp.post("/comment/delete/<int:comment_id>")
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    post = Post.query.get(comment.post_id)
+    if comment.user_id == g.user.id or post.user_id == g.user.id or g.user.is_admin:
+        db.session.delete(comment)
+        db.session.commit()
+        flash("Comment removed successfully.", "success")
+    else:
+        flash("You do not have permission to delete this comment.", "danger")
+        
+    return back_to_feed()
+
+
+@feed_bp.post("/comment/<int:comment_id>/report")
+@login_required
+def report_comment(comment_id):
+    comment = db.get_or_404(Comment, comment_id)
+
+    if comment.user_id == g.user.id:
+        flash("You can't report your own comment.", "info")
+    elif CommentReport.query.filter_by(comment_id=comment.id, user_id=g.user.id).first():
+        flash("You already reported this comment.", "info")
+    else:
+        db.session.add(CommentReport(comment_id=comment.id, user_id=g.user.id))
+        try:
+            db.session.commit()
+            flash("Thanks. The comment was reported.", "success")
+        except IntegrityError:
+            db.session.rollback()
+            flash("You already reported this comment.", "info")
+    return back_to_feed()
