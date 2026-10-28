@@ -38,6 +38,29 @@
                 </div>
             </a>
 
+  .badge-category {
+    background-color: var(--secondary-teal);
+    color: #ffffff;
+  }
+</style>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand navbar-dark bg-primary mb-4">
+    <div class="container" style="max-width: 800px;">
+        <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">CampusPulse</a>
+        <ul class="navbar-nav ms-auto align-items-center">
+            {% if current_user %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feed.view_feed') }}">Feed</a></li>
+                {% if current_user.is_admin %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.manage') }}">Manage Issues</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.moderation') }}">Moderation</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.submit') }}">Submit Feedback</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.my_submissions') }}">My Submissions</a></li>
+                {% endif %}
+                <li class="nav-item text-white-50 small mx-2">{{ current_user.name }}</li>
+                <li class="nav-item">
+                    <form action="{{ url_for('auth.logout') }}" method="POST" class="d-inline">
             <nav class="flex flex-wrap items-center justify-center gap-2 text-sm">
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">

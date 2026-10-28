@@ -7,7 +7,8 @@ from app import db
 CATEGORIES = ["Academics", "Hostel", "Wi-Fi", "Canteen", "Library", "Events", "Notices", "General"]
 DEPARTMENTS = ["CSE", "AIDS", "ECE", "EE", "ME", "Civil", "Other"]
 REPORT_REASONS = ["Spam", "Abusive or offensive", "Off-topic", "Other"]
-
+FEEDBACK_CATEGORIES = [c for c in CATEGORIES if c != "Notices"]
+STATUSES = ["Pending", "In Progress", "Resolved"]
 
 def utcnow():
     return datetime.now(timezone.utc)
@@ -98,3 +99,21 @@ class CommentReport(db.Model):
     __table_args__ = (
         db.UniqueConstraint("comment_id", "user_id", name="uq_comment_report_once"),
     )
+
+class Feedback(db.Model):
+    """Structured feedback (rating + status). This is the table the analytics page reads."""
+    __tablename__ = "feedback_entries"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    category = db.Column(db.String(50), nullable=False, index=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)                 # 1 to 5
+    department = db.Column(db.String(50), index=True)              # copied from the user's profile
+    is_anonymous = db.Column(db.Boolean, nullable=False, default=False)
+    status = db.Column(db.String(20), nullable=False, default="Pending", index=True)
+    admin_note = db.Column(db.Text)                                # admin's reply to the student
+    created_at = db.Column(db.DateTime, default=utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
+
+    user = db.relationship("User", backref="feedback_items")

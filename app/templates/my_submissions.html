@@ -1,72 +1,55 @@
 {% extends "base.html" %}
-{% block title %}My Submissions{% endblock %}
-
+{% from "_macros.html" import status_badge, stars, pager %}
+{% block title %}My Submissions - CampusPulse{% endblock %}
 {% block content %}
-<section class="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <div>
-            <h2 class="text-xl font-bold text-navy">My Submissions</h2>
-            <p class="text-sm text-gray-500">Track your submitted issues</p>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 style="color: var(--primary-dark); font-weight: 700;">My Submissions</h3>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('feedback.submit') }}">+ New Feedback</a>
+</div>
 
-        <!-- Filters (GET request: ?status=...&category=...) -->
-        <form method="GET" action="{{ url_for('my_submissions') }}" class="flex gap-2 text-sm">
-            <select name="category" onchange="this.form.submit()" class="p-2 border rounded-lg bg-white" aria-label="Filter by category">
+<form method="GET" class="card p-3 mb-3">
+    <div class="row g-2">
+        <div class="col-6">
+            <select name="category" class="form-select form-select-sm">
                 <option value="">All categories</option>
-                {% for c in ['Hostel', 'Cafe', 'Library', 'Wi-Fi'] %}
-                    <option value="{{ c }}" {% if request.args.get('category') == c %}selected{% endif %}>{{ c }}</option>
-                {% endfor %}
+                {% for c in categories %}<option {{ 'selected' if category == c }}>{{ c }}</option>{% endfor %}
             </select>
-            <select name="status" onchange="this.form.submit()" class="p-2 border rounded-lg bg-white" aria-label="Filter by status">
-                <option value="">All status</option>
-                {% for s in ['Pending', 'In Progress', 'Resolved'] %}
-                    <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
-                {% endfor %}
+        </div>
+        <div class="col-6">
+            <select name="status" class="form-select form-select-sm">
+                <option value="">All statuses</option>
+                {% for s in statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}
             </select>
-        </form>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button class="btn btn-sm btn-primary">Filter</button>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('feedback.my_submissions') }}">Clear</a>
+        </div>
     </div>
+</form>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm border-collapse">
-            <thead>
-                <tr class="bg-bgLight text-navy border-b">
-                    <th class="p-2.5">ID</th>
-                    <th class="p-2.5">Category</th>
-                    <th class="p-2.5">Title</th>
-                    <th class="p-2.5">Status</th>
-                    <th class="p-2.5">Rating</th>
-                    <th class="p-2.5">Date</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                {% for item in submissions %}
-                <tr>
-                    <td class="p-2.5 text-tealDark font-semibold">{{ item.ticket_id }}</td>
-                    <td class="p-2.5 font-bold">{{ item.category }}</td>
-                    <td class="p-2.5">{{ item.title }}</td>
-                    <td class="p-2.5">
-                        {% if item.status == 'Resolved' %}
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">Resolved</span>
-                        {% elif item.status == 'In Progress' %}
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">In Progress</span>
-                        {% else %}
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">{{ item.status }}</span>
-                        {% endif %}
-                    </td>
-                    <td class="p-2.5 font-bold text-amber-500">{{ item.rating }} &#9733;</td>
-                    <td class="p-2.5 text-gray-500 whitespace-nowrap">{{ item.created_at.strftime('%d %b %Y') if item.created_at else '' }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="p-6 text-center text-gray-400">No submissions found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+{% for item in items %}
+<div class="card p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-start mb-1">
+        <div>
+            <span class="badge badge-category">{{ item.category }}</span>
+            {{ status_badge(item.status) }}
+            <span class="small text-muted ms-1">CP-{{ '%04d'|format(item.id) }}</span>
+        </div>
+        <small class="text-muted">{{ item.created_at.strftime('%Y-%m-%d') }}</small>
     </div>
+    <h6 class="mb-1">{{ item.title }}</h6>
+    <p class="small mb-1" style="white-space: pre-wrap;">{{ item.description }}</p>
+    <div class="small">Rating: {{ stars(item.rating) }}{% if item.is_anonymous %} &middot; <span class="text-muted">Anonymous</span>{% endif %}</div>
+    {% if item.admin_note %}
+    <div class="alert alert-info py-2 px-3 mt-2 mb-0 small"><strong>Admin reply:</strong> {{ item.admin_note }}</div>
+    {% endif %}
+</div>
+{% else %}
+<div class="card p-4 text-center text-muted">
+    {% if category or status %}No submissions match these filters.{% else %}You haven't submitted any feedback yet.{% endif %}
+</div>
+{% endfor %}
 
-    <a href="{{ url_for('student_dashboard') }}" class="inline-block mt-5 py-2 px-4 bg-tealDark text-white text-sm font-semibold rounded-xl hover:bg-navy">
-        &larr; Back to Dashboard
-    </a>
-</section>
+{{ pager(pagination, 'feed.my_submissions', category=category, status=status) }}
 {% endblock %}
