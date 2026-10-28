@@ -4,6 +4,9 @@ from flask import Blueprint, flash, g, redirect, render_template, request, sessi
 
 from app import db
 from app.models import DEPARTMENTS, User
+from flask import render_template
+from flask_login import login_required, current_user
+
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -75,3 +78,8 @@ def logout():
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("home"))
+
+@auth_bp.route('/dashboard')  # or @app.route('/profile') depending on your blueprint setup
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)

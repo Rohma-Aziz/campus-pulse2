@@ -42,6 +42,12 @@ def create_app():
     app.register_blueprint(feed_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(feedback_bp)
+    from app.routes.analytics_routes import analytics_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(feed_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(analytics_bp)
 
     @app.before_request
     def load_user():
