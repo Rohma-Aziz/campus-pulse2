@@ -39,9 +39,12 @@
             </a>
 
             <nav class="flex flex-wrap items-center justify-center gap-2 text-sm">
-                {% if current_user %}
+                {% if current_user.is_authenticated %}
                     <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
                         <i class="fa-solid fa-comments mr-1"></i> Feed
+                    </a>
+                    <a href="{{ url_for('feed.analytics_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
+                        <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
                     </a>
                     {% if current_user.is_admin %}
                         <a href="{{ url_for('admin.moderation') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
@@ -64,7 +67,7 @@
         </div>
     </header>
 
-    <!-- FLASH MESSAGES (success = green, danger = red, warning = amber, info = blue) -->
+    <!-- FLASH MESSAGES -->
     <div class="max-w-2xl w-full mx-auto px-4 pt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
@@ -104,7 +107,7 @@
             document.querySelectorAll('.flash-msg').forEach(function (el) { el.remove(); });
         }, 6000);
 
-        // Show timestamps in the viewer's local time (server stores UTC)
+        // Show timestamps in viewer's local time
         document.querySelectorAll('time[data-utc]').forEach(function (el) {
             var d = new Date(el.dataset.utc);
             if (!isNaN(d)) {

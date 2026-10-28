@@ -1,9 +1,10 @@
 from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, url_for
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from app import db
 from app.models import CATEGORIES, REPORT_REASONS, Comment, CommentReport, Like, Post, Report
 from app.utils import login_required, moderate
-from sqlalchemy.exc import IntegrityError
+from app.analytics import process_analytics_data
 
 
 feed_bp = Blueprint("feed", __name__, url_prefix="/feed")
@@ -73,7 +74,6 @@ def create_post():
     elif not POST_MIN <= len(content) <= POST_MAX:
         flash(f"Posts must be {POST_MIN} to {POST_MAX} characters.", "danger")
     else:
-        # better_profanity check (see utils.check_content_locally)
         is_flagged, reason = moderate(content)
 
         post = Post(
@@ -122,6 +122,7 @@ def add_comment(post_id):
         db.session.commit()
     return back_to_feed(post.id)
 
+
 @feed_bp.post("/post/<int:post_id>/report")
 @login_required
 def report_post(post_id):
@@ -155,12 +156,18 @@ def delete_post(post_id):
     flash("Post deleted.", "info")
     return back_to_feed()
 
+
+@feed_bp.route('/analytics')
+@login_required
+def analytics_dashboard():
+    analytics_data = process_analytics_data()
+    return render_template('analytics.html', **analytics_data)
+
+
 @feed_bp.post("/comment/delete/<int:comment_id>")
 @login_required
 def delete_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
-    
-    # Allow deletion if the user wrote the comment, owns the post, or is an admin
     post = Post.query.get(comment.post_id)
     if comment.user_id == g.user.id or post.user_id == g.user.id or g.user.is_admin:
         db.session.delete(comment)
@@ -170,6 +177,7 @@ def delete_comment(comment_id):
         flash("You do not have permission to delete this comment.", "danger")
         
     return back_to_feed()
+
 
 @feed_bp.post("/comment/<int:comment_id>/report")
 @login_required

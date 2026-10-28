@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CampusPulse - User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 mt-10">
+        <div class="flex items-center space-x-4 mb-6">
+            <div class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                {{ user.username[0] | upper }}
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">{{ user.username }}</h1>
+                <p class="text-sm text-gray-500">{{ user.email }}</p>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4 space-y-3 text-gray-700">
+            <p><strong>Role:</strong> Student / Analytics Lead</p>
+            <p><strong>Department:</strong> AIDS (Artificial Intelligence & Data Science)</p>
+            <p><strong>Status:</strong> <span class="text-green-600 font-semibold">Active Session</span></p>
+        </div>
+
+        <div class="mt-8 flex space-x-3">
+            <a href="{{ url_for('feed') }}" class="flex-1 bg-indigo-600 text-white text-center py-2 rounded-lg font-medium shadow hover:bg-indigo-700 transition">Back to Feed</a>
+            <a href="{{ url_for('logout') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

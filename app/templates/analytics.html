@@ -2,97 +2,100 @@
 {% block title %}Analytics{% endblock %}
 
 {% block head %}
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
-<section class="w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-    <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h2 class="text-xl font-bold text-navy">Feedback Analytics</h2>
-        <a href="{{ url_for('admin_dashboard') }}" class="text-sm py-1.5 px-3 bg-tealDark text-white rounded-lg hover:bg-navy">
+<section class="w-full max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <h2 class="text-2xl font-bold text-gray-800">📊 Feedback Analytics Dashboard</h2>
+        <a href="{{ url_for('feed.view_feed') }}" class="text-sm py-2 px-4 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
             Back to Dashboard
         </a>
     </div>
 
     <!-- Score Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 text-center">
-        <div class="bg-bgLight p-3 rounded-xl border">
-            <span class="text-sm text-gray-500">Satisfaction</span>
-            <div class="text-2xl font-bold text-tealDark">{{ avg_rating }} / 5</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+        <div class="bg-gray-50 p-4 rounded-xl border">
+            <span class="text-sm text-gray-500 font-semibold">Overall Satisfaction</span>
+            <div class="text-3xl font-bold text-indigo-600 mt-1">{{ overall_satisfaction }} / 5</div>
         </div>
-        <div class="bg-bgLight p-3 rounded-xl border">
-            <span class="text-sm text-gray-500">Total Feedback</span>
-            <div class="text-2xl font-bold text-navy">{{ total_feedback }}</div>
+        <div class="bg-gray-50 p-4 rounded-xl border">
+            <span class="text-sm text-gray-500 font-semibold">Highest Department</span>
+            <div class="text-2xl font-bold text-green-600 mt-1">{{ highest_dept }}</div>
         </div>
-        <div class="bg-bgLight p-3 rounded-xl border col-span-2 md:col-span-1">
-            <span class="text-sm text-gray-500">Resolved Rate</span>
-            <div class="text-2xl font-bold text-emerald-600">{{ resolved_rate }}%</div>
-        </div>
-    </div>
-
-    <!-- Charts -->
-    <div class="grid md:grid-cols-2 gap-4 mb-5">
-        <div class="bg-bgLight p-4 rounded-xl border">
-            <h3 class="text-sm font-bold text-navy mb-2">Satisfaction By Department</h3>
-            <div class="h-48"><canvas id="deptChart"></canvas></div>
-        </div>
-        <div class="bg-bgLight p-4 rounded-xl border">
-            <h3 class="text-sm font-bold text-navy mb-2">Issues By Category</h3>
-            <div class="h-48"><canvas id="categoryChart"></canvas></div>
+        <div class="bg-gray-50 p-4 rounded-xl border">
+            <span class="text-sm text-gray-500 font-semibold">Lowest Department</span>
+            <div class="text-2xl font-bold text-red-600 mt-1">{{ lowest_dept }}</div>
         </div>
     </div>
 
     <!-- Key Insights -->
-    <div class="bg-navy text-white p-4 rounded-xl text-sm space-y-1.5">
-        <h3 class="font-bold text-tealLight mb-1"><i class="fa-solid fa-lightbulb"></i> Key Insights</h3>
-        {% for insight in insights %}
-            <p>&bull; {{ insight }}</p>
-        {% else %}
-            <p class="text-gray-300">Not enough data yet to generate insights.</p>
-        {% endfor %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-xl shadow-sm">
+        <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2">💡 Automated Key Insights</h3>
+        <ul class="list-disc pl-5 space-y-1 text-yellow-900 text-sm">
+            {% for insight in insights %}
+                <li>{{ insight }}</li>
+            {% else %}
+                <p class="text-gray-500 italic">Not enough data yet to generate insights.</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+        <div class="bg-gray-50 p-4 rounded-xl border">
+            <h3 class="text-base font-bold text-gray-700 mb-3">Satisfaction by Department</h3>
+            <div class="h-64"><canvas id="deptChart"></canvas></div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl border">
+            <h3 class="text-base font-bold text-gray-700 mb-3">Satisfaction by Facility / Category</h3>
+            <div class="h-64"><canvas id="facilityChart"></canvas></div>
+        </div>
     </div>
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Data comes from the Flask backend
-    const deptLabels = {{ dept_labels|tojson }};
-    const deptScores = {{ dept_scores|tojson }};
-    const catLabels  = {{ cat_labels|tojson }};
-    const catCounts  = {{ cat_counts|tojson }};
-
-    new Chart(document.getElementById('deptChart'), {
+    // Department Chart
+    const deptCtx = document.getElementById('deptChart').getContext('2d');
+    new Chart(deptCtx, {
         type: 'bar',
         data: {
-            labels: deptLabels,
+            labels: JSON.parse('{{ chart_data.dept_labels | tojson | safe }}'),
             datasets: [{
-                label: 'Satisfaction Score (1-5)',
-                data: deptScores,
-                backgroundColor: ['#39B7A5', '#216B83', '#142D4E']
+                label: 'Average Rating',
+                data: JSON.parse('{{ chart_data.dept_values | tojson | safe }}'),
+                backgroundColor: '#4F46E5',
+                borderRadius: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { y: { min: 0, max: 5 } }
+            scales: { y: { beginAtZero: true, max: 5 } }
         }
     });
 
-    new Chart(document.getElementById('categoryChart'), {
+    // Facility Chart
+    const facilityCtx = document.getElementById('facilityChart').getContext('2d');
+    new Chart(facilityCtx, {
         type: 'bar',
         data: {
-            labels: catLabels,
+            labels: JSON.parse('{{ chart_data.cat_labels | tojson | safe }}'),
             datasets: [{
-                label: 'Number of Issues',
-                data: catCounts,
-                backgroundColor: ['#39B7A5', '#216B83', '#142D4E', '#F59E0B']
+                label: 'Average Rating',
+                data: JSON.parse('{{ chart_data.cat_values | tojson | safe }}'),
+                backgroundColor: '#10B981',
+                borderRadius: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            scales: { y: { beginAtZero: true, max: 5 } }
         }
     });
 </script>
