@@ -1,31 +1,97 @@
 {% extends "base.html" %}
-{% block title %}Sign Up - CampusPulse{% endblock %}
+{% block title %}Sign Up{% endblock %}
+
 {% block content %}
-<div class="card shadow-sm mx-auto" style="max-width: 440px;">
-    <div class="card-body">
-        <h4 class="mb-1">Create your account</h4>
-        <p class="text-muted small">Students only. Admin accounts are created by the college.</p>
-        <form method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="mb-3"><label class="form-label">Name</label>
-                <input name="name" class="form-control" maxlength="100" required></div>
-            <div class="mb-3"><label class="form-label">Email</label>
-                <input name="email" type="email" class="form-control" maxlength="120" required></div>
-            <div class="mb-3"><label class="form-label">Password (8+ characters)</label>
-                <input name="password" type="password" class="form-control" minlength="8" required></div>
-            <div class="mb-3"><label class="form-label">Department</label>
-                <select name="department" class="form-select" required>
-                    <option value="" disabled selected>Select department</option>
-                    {% for d in DEPARTMENTS %}<option>{{ d }}</option>{% endfor %}
-                </select></div>
-            <div class="mb-3"><label class="form-label">Year (optional)</label>
-                <select name="year" class="form-select">
-                    <option value="">Select year</option>
-                    {% for y in [1,2,3,4] %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
-                </select></div>
-            <button class="btn btn-primary w-100">Create Account</button>
-        </form>
-        <p class="small mt-3 mb-0">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
-    </div>
-</div>
+<section class="w-full max-w-md self-center bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <h2 class="text-2xl font-bold text-navy text-center mb-1">Sign Up</h2>
+    <p class="text-sm text-gray-500 text-center mb-5">Students only. Admin accounts are pre-created.</p>
+
+    <form method="POST" action="{{ url_for('auth.signup') }}" id="signup-form" class="space-y-3 text-sm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+            <label for="name" class="block font-semibold text-navy mb-1">Name</label>
+            <input type="text" id="name" name="name" required minlength="2" maxlength="100" placeholder="Enter name"
+                   class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+        </div>
+        <div>
+            <label for="email" class="block font-semibold text-navy mb-1">Email</label>
+            <input type="email" id="email" name="email" required maxlength="120" placeholder="Enter email"
+                   class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+        </div>
+        <div>
+            <label for="password" class="block font-semibold text-navy mb-1">Password</label>
+            <div class="relative">
+                <input type="password" id="password" name="password" required minlength="8" placeholder="Minimum 8 characters"
+                       class="w-full p-2.5 pr-10 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                <button type="button" onclick="togglePassword('password', this)"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy" aria-label="Show or hide password">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        <div>
+            <label for="confirm_password" class="block font-semibold text-navy mb-1">Confirm Password</label>
+            <input type="password" id="confirm_password" required placeholder="Re-enter password"
+                   class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+            <p id="match-error" class="hidden text-red-600 text-xs mt-1">Passwords do not match.</p>
+        </div>
+        <div>
+            <label for="department" class="block font-semibold text-navy mb-1">Department</label>
+            <select id="department" name="department" required
+                    class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-tealLight outline-none">
+                <option value="" disabled selected>Select department</option>
+                {% for d in DEPARTMENTS %}
+                    <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="year" class="block font-semibold text-navy mb-1">Year (optional)</label>
+            <select id="year" name="year"
+                    class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-tealLight outline-none">
+                <option value="" selected>Select year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+            </select>
+        </div>
+        <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition mt-2">
+            Create Account
+        </button>
+    </form>
+
+    <p class="text-sm text-center text-gray-500 mt-4">
+        Already have an account? <a href="{{ url_for('auth.login') }}" class="text-tealDark font-bold hover:underline">Login</a>
+    </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // Block submit if the two passwords differ
+    document.getElementById('signup-form').addEventListener('submit', function (e) {
+        const p1 = document.getElementById('password').value;
+        const p2 = document.getElementById('confirm_password').value;
+        const err = document.getElementById('match-error');
+        if (p1 !== p2) {
+            e.preventDefault();
+            err.classList.remove('hidden');
+        } else {
+            err.classList.add('hidden');
+        }
+    });
+</script>
 {% endblock %}

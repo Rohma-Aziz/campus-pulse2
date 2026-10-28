@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}My Submissions{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+        <div>
+            <h2 class="text-xl font-bold text-navy">My Submissions</h2>
+            <p class="text-sm text-gray-500">Track your submitted issues</p>
+        </div>
+
+        <!-- Filters (GET request: ?status=...&category=...) -->
+        <form method="GET" action="{{ url_for('my_submissions') }}" class="flex gap-2 text-sm">
+            <select name="category" onchange="this.form.submit()" class="p-2 border rounded-lg bg-white" aria-label="Filter by category">
+                <option value="">All categories</option>
+                {% for c in ['Hostel', 'Cafe', 'Library', 'Wi-Fi'] %}
+                    <option value="{{ c }}" {% if request.args.get('category') == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" onchange="this.form.submit()" class="p-2 border rounded-lg bg-white" aria-label="Filter by status">
+                <option value="">All status</option>
+                {% for s in ['Pending', 'In Progress', 'Resolved'] %}
+                    <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+            <thead>
+                <tr class="bg-bgLight text-navy border-b">
+                    <th class="p-2.5">ID</th>
+                    <th class="p-2.5">Category</th>
+                    <th class="p-2.5">Title</th>
+                    <th class="p-2.5">Status</th>
+                    <th class="p-2.5">Rating</th>
+                    <th class="p-2.5">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for item in submissions %}
+                <tr>
+                    <td class="p-2.5 text-tealDark font-semibold">{{ item.ticket_id }}</td>
+                    <td class="p-2.5 font-bold">{{ item.category }}</td>
+                    <td class="p-2.5">{{ item.title }}</td>
+                    <td class="p-2.5">
+                        {% if item.status == 'Resolved' %}
+                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">Resolved</span>
+                        {% elif item.status == 'In Progress' %}
+                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">In Progress</span>
+                        {% else %}
+                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">{{ item.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-2.5 font-bold text-amber-500">{{ item.rating }} &#9733;</td>
+                    <td class="p-2.5 text-gray-500 whitespace-nowrap">{{ item.created_at.strftime('%d %b %Y') if item.created_at else '' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="p-6 text-center text-gray-400">No submissions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ url_for('student_dashboard') }}" class="inline-block mt-5 py-2 px-4 bg-tealDark text-white text-sm font-semibold rounded-xl hover:bg-navy">
+        &larr; Back to Dashboard
+    </a>
+</section>
+{% endblock %}

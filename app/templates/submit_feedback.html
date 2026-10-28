@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Submit Feedback{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-md bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b">
+        <h2 class="text-xl font-bold text-navy">Submit Feedback</h2>
+        <a href="{{ url_for('student_dashboard') }}" class="text-sm text-gray-500 hover:text-navy">&larr; Back</a>
+    </div>
+
+    <form method="POST" action="{{ url_for('submit_feedback') }}" class="space-y-3 text-sm">
+        <div>
+            <label for="title" class="block font-semibold text-navy mb-1">Issue Title</label>
+            <input type="text" id="title" name="title" required placeholder="Enter issue title"
+                   class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+        </div>
+        <div>
+            <label for="category" class="block font-semibold text-navy mb-1">Category</label>
+            <select id="category" name="category" required
+                    class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-tealLight outline-none">
+                <option value="" disabled selected>Select category</option>
+                <option value="Hostel">Hostel</option>
+                <option value="Cafe">Cafe</option>
+                <option value="Library">Library</option>
+                <option value="Wi-Fi">Wi-Fi / Tech</option>
+            </select>
+        </div>
+        <div>
+            <label for="description" class="block font-semibold text-navy mb-1">Description</label>
+            <textarea id="description" name="description" required rows="3" placeholder="Describe the issue..."
+                      class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none"></textarea>
+        </div>
+
+        <!-- 1 to 5 Star Rating -->
+        <div>
+            <label class="block font-semibold text-navy mb-1">Rating (1 to 5)</label>
+            <div class="flex items-center gap-2 text-2xl" id="star-box">
+                <i class="fa-solid fa-star cursor-pointer text-amber-400" data-value="1"></i>
+                <i class="fa-solid fa-star cursor-pointer text-amber-400" data-value="2"></i>
+                <i class="fa-solid fa-star cursor-pointer text-amber-400" data-value="3"></i>
+                <i class="fa-solid fa-star cursor-pointer text-amber-400" data-value="4"></i>
+                <i class="fa-solid fa-star cursor-pointer text-gray-300" data-value="5"></i>
+                <span id="star-number" class="text-sm font-bold text-navy ml-2">4/5</span>
+            </div>
+            <input type="hidden" name="rating" id="rating-input" value="4">
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+            <input type="checkbox" id="anonymous" name="anonymous" value="1">
+            <label for="anonymous" class="text-gray-600">Submit anonymously (optional)</label>
+        </div>
+
+        <p class="text-xs text-gray-400">
+            Department is auto-filled from your profile{% if session.get('department') %} ({{ session.get('department') }}){% endif %}.
+        </p>
+
+        <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition">
+            Submit
+        </button>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll('#star-box i').forEach(function (star) {
+        star.addEventListener('click', function () {
+            const rating = parseInt(star.dataset.value, 10);
+            document.getElementById('rating-input').value = rating;
+            document.getElementById('star-number').textContent = rating + '/5';
+            document.querySelectorAll('#star-box i').forEach(function (s, index) {
+                s.classList.toggle('text-amber-400', index < rating);
+                s.classList.toggle('text-gray-300', index >= rating);
+            });
+        });
+    });
+</script>
+{% endblock %}

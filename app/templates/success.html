@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Feedback Submitted{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-sm bg-white p-6 rounded-2xl shadow-lg border border-gray-100 text-center">
+    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+        <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <h2 class="text-xl font-bold text-navy mb-1">Feedback Submitted Successfully!</h2>
+    <p class="text-sm text-gray-500 mb-4">Ticket logged into the system.</p>
+
+    <div class="bg-bgLight p-3 rounded-xl text-left text-sm space-y-1.5 mb-5 border">
+        <p><strong>Submission ID:</strong> <span class="text-tealDark">{{ submission.ticket_id }}</span></p>
+        <p><strong>Category:</strong> <span>{{ submission.category }}</span></p>
+        <p><strong>Rating:</strong> <span class="text-amber-500">{{ submission.rating }} / 5 &#9733;</span></p>
+    </div>
+
+    <div class="space-y-2 text-sm">
+        <a href="{{ url_for('student_dashboard') }}" class="block w-full py-2.5 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition">
+            Back to Dashboard
+        </a>
+        <a href="{{ url_for('my_submissions') }}" class="block w-full py-2.5 bg-tealLight text-navy font-bold rounded-xl hover:bg-tealDark hover:text-white transition">
+            View My Submissions
+        </a>
+    </div>
+</section>
+{% endblock %}

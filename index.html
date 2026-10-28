@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusPulse - Easy Frontend Minor Project</title>
+
+    <!-- Tailwind CSS (for quick and clean styling) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js (for simple analytics bar chart) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome (for icons like stars, users, and checkmarks) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Tailwind Color Theme Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#142D4E',       /* Primary Color */
+                        tealDark: '#216B83',   /* Secondary Color */
+                        tealLight: '#39B7A5',  /* Accent Color */
+                        bgLight: '#F4F7FA',    /* Background Color */
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-bgLight text-gray-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- ========================================== -->
+    <!-- TOP NAVIGATION BAR (FOR EASY VIVA DEMO)   -->
+    <!-- ========================================== -->
+    <header class="bg-navy text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('home')">
+                <div class="w-10 h-10 bg-tealLight rounded-xl flex items-center justify-center font-bold text-navy text-xl">
+                    CP
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold">CampusPulse</h1>
+                    <p class="text-xs text-tealLight">Feedback & Analytics Portal</p>
+                </div>
+            </div>
+
+            <!-- Page Switcher Buttons (Helpful during presentation to show teacher any page) -->
+            <div class="flex flex-wrap gap-1 text-xs">
+                <button onclick="showPage('home')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Home</button>
+                <button onclick="showPage('signup')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Signup</button>
+                <button onclick="showPage('login')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Login</button>
+                <button onclick="showPage('student_dashboard')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Student Dash</button>
+                <button onclick="showPage('admin_dashboard')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Admin Dash</button>
+                <button onclick="showPage('feed')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Feed</button>
+                <button onclick="showPage('analytics')" class="px-2.5 py-1 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Analytics</button>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- ========================================== -->
+    <!-- MAIN CONTENT CONTAINER (PAGES SWITCH HERE) -->
+    <!-- ========================================== -->
+    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow flex items-center justify-center">
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 1: HOME PAGE (home.html)              -->
+        <!-- ========================================== -->
+        <section id="page-home" class="page-view w-full max-w-lg text-center bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <div class="w-20 h-20 bg-navy text-tealLight rounded-2xl mx-auto flex items-center justify-center text-3xl font-extrabold mb-4 shadow">
+                CP
+            </div>
+            <h2 class="text-3xl font-bold text-navy mb-2">CampusPulse</h2>
+            <p class="text-gray-600 text-sm mb-6">
+                Student Feedback & Campus Issue Analytics Platform
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="showPage('signup')" class="w-full py-3 bg-tealDark text-white font-semibold rounded-xl hover:bg-navy transition">
+                    <i class="fa-solid fa-user-plus mr-1"></i> Sign Up
+                </button>
+                <button onclick="showPage('login')" class="w-full py-3 bg-tealLight text-navy font-semibold rounded-xl hover:bg-tealDark hover:text-white transition">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 2: SIGN UP PAGE (signup.html)         -->
+        <!-- ========================================== -->
+        <section id="page-signup" class="page-view hidden w-full max-w-md bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-2xl font-bold text-navy text-center mb-1">Sign Up Page</h2>
+            <p class="text-xs text-gray-500 text-center mb-5">Students only. Admin accounts are pre-created.</p>
+            
+            <form onsubmit="handleSignup(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Name</label>
+                    <input type="text" required placeholder="Enter name" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Email</label>
+                    <input type="email" required placeholder="Enter email" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Password</label>
+                    <input type="password" required placeholder="Enter password" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Department</label>
+                    <select required class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-tealLight outline-none">
+                        <option value="" disabled selected>Select department</option>
+                        <option value="AIDS">AIDS (Data Science)</option>
+                        <option value="CSE">Computer Science</option>
+                        <option value="ECE">Electronics (ECE)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Year (optional)</label>
+                    <select class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-tealLight outline-none">
+                        <option value="" selected>Select year</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition text-sm mt-2">
+                    Create Account
+                </button>
+            </form>
+            <p class="text-xs text-center text-gray-500 mt-4">
+                Already have an account? <a href="#" onclick="showPage('login')" class="text-tealDark font-bold hover:underline">Login</a>
+            </p>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 3: LOGIN PAGE (login.html)            -->
+        <!-- ========================================== -->
+        <section id="page-login" class="page-view hidden w-full max-w-md bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-2xl font-bold text-navy text-center mb-1">Login Page</h2>
+            <p class="text-xs text-gray-500 text-center mb-4">Enter email & password to access system</p>
+
+            <!-- Failed Login Box (Toggled for Presentation) -->
+            <div id="failed-login-alert" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-xs rounded-xl flex justify-between items-center">
+                <span><i class="fa-solid fa-triangle-exclamation mr-1"></i> Invalid credentials. Show error message.</span>
+                <button onclick="toggleErrorAlert(false)" class="font-bold text-sm">×</button>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Email</label>
+                    <input type="email" id="login-email" value="student@college.edu" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Password</label>
+                    <input type="password" id="login-pass" value="123456" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                </div>
+
+                <!-- Choose Role (Student vs Admin Simulation) -->
+                <div class="pt-2">
+                    <label class="block font-semibold text-navy mb-1">Login Role Simulation:</label>
+                    <div class="flex gap-4 bg-bgLight p-2 rounded-lg border">
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="loginRole" value="student" checked class="text-tealDark"> Student
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="loginRole" value="admin" class="text-tealDark"> Admin
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-right pt-1">
+                    <button type="button" onclick="toggleErrorAlert(true)" class="text-red-500 hover:underline">Simulate Invalid Credentials</button>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition text-sm">
+                    Login
+                </button>
+            </form>
+
+            <p class="text-xs text-center text-gray-500 mt-4">
+                New student? <a href="#" onclick="showPage('signup')" class="text-tealDark font-bold hover:underline">Sign up</a>
+            </p>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 4: STUDENT DASHBOARD (dashboard.html) -->
+        <!-- ========================================== -->
+        <section id="page-student_dashboard" class="page-view hidden w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-gray-100 text-center">
+            <div class="w-16 h-16 bg-tealLight/20 text-tealDark rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-navy mb-1">Welcome, Student!</h2>
+            <p class="text-xs text-gray-500 mb-6">College Feedback & Issue Tracker</p>
+
+            <div class="space-y-3 text-sm">
+                <button onclick="showPage('submit_feedback')" class="w-full py-3 bg-tealDark text-white font-semibold rounded-xl hover:bg-navy transition flex items-center justify-center">
+                    <i class="fa-solid fa-pen-to-square mr-2"></i> Submit Feedback
+                </button>
+                <button onclick="showPage('my_submissions')" class="w-full py-3 bg-tealLight text-navy font-semibold rounded-xl hover:bg-tealDark hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-list-check mr-2"></i> View My Submissions
+                </button>
+                <button onclick="showPage('feed')" class="w-full py-3 bg-navy text-white font-semibold rounded-xl hover:bg-tealDark transition flex items-center justify-center">
+                    <i class="fa-solid fa-comments mr-2 text-tealLight"></i> Community Feed (Facebook Wall)
+                </button>
+                <button onclick="showPage('login')" class="w-full py-2.5 border text-gray-600 font-medium rounded-xl hover:bg-gray-100 transition text-xs">
+                    Logout
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 5: SUBMIT FEEDBACK (submit_feedback.html) -->
+        <!-- ========================================== -->
+        <section id="page-submit_feedback" class="page-view hidden w-full max-w-md bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h2 class="text-xl font-bold text-navy">Submit Feedback</h2>
+                <button onclick="showPage('student_dashboard')" class="text-xs text-gray-500 hover:text-navy">
+                    ← Back
+                </button>
+            </div>
+
+            <form onsubmit="handleFeedbackSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Issue Title</label>
+                    <input type="text" id="feedback-title" required placeholder="Enter issue title" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Category</label>
+                    <select id="feedback-category" required class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-tealLight outline-none">
+                        <option value="" disabled selected>Select category</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Library">Library</option>
+                        <option value="Wi-Fi">Wi-Fi / Tech</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Description</label>
+                    <textarea id="feedback-desc" required rows="3" placeholder="Describe the issue..." class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none"></textarea>
+                </div>
+
+                <!-- 1 to 5 Star Rating Selection -->
+                <div>
+                    <label class="block font-semibold text-navy mb-1">Rating (1 to 5)</label>
+                    <div class="flex items-center gap-2 text-xl text-gray-300" id="star-box">
+                        <i class="fa-solid fa-star cursor-pointer text-amber-400" onclick="selectStar(1)"></i>
+                        <i class="fa-solid fa-star cursor-pointer text-amber-400" onclick="selectStar(2)"></i>
+                        <i class="fa-solid fa-star cursor-pointer text-amber-400" onclick="selectStar(3)"></i>
+                        <i class="fa-solid fa-star cursor-pointer text-amber-400" onclick="selectStar(4)"></i>
+                        <i class="fa-solid fa-star cursor-pointer" onclick="selectStar(5)"></i>
+                        <span id="star-number" class="text-xs font-bold text-navy ml-2">4/5</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="anon-check">
+                    <label for="anon-check" class="text-gray-600">Submit anonymously (optional)</label>
+                </div>
+
+                <p class="text-[11px] text-gray-400">Department is auto-filled from profile (AIDS).</p>
+
+                <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition text-sm">
+                    Submit
+                </button>
+            </form>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 6: SUCCESS PAGE (success.html)        -->
+        <!-- ========================================== -->
+        <section id="page-success" class="page-view hidden w-full max-w-sm bg-white p-6 rounded-2xl shadow-lg border border-gray-100 text-center">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2 class="text-xl font-bold text-navy mb-1">Feedback Submitted Successfully!</h2>
+            <p class="text-xs text-gray-500 mb-4">Ticket logged into the system.</p>
+
+            <div class="bg-bgLight p-3 rounded-xl text-left text-xs space-y-1.5 mb-5 border">
+                <p><strong>Submission ID:</strong> <span id="succ-id" class="text-tealDark">CP-1024</span></p>
+                <p><strong>Category:</strong> <span id="succ-cat">Hostel</span></p>
+                <p><strong>Rating:</strong> <span id="succ-rate" class="text-amber-500">4 / 5 ★</span></p>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <button onclick="showPage('student_dashboard')" class="w-full py-2.5 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition">
+                    Back to Dashboard
+                </button>
+                <button onclick="showPage('my_submissions')" class="w-full py-2.5 bg-tealLight text-navy font-bold rounded-xl hover:bg-tealDark hover:text-white transition">
+                    View My Submissions
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 7: MY SUBMISSIONS (my_submissions.html) -->
+        <!-- ========================================== -->
+        <section id="page-my_submissions" class="page-view hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-navy">My Submissions</h2>
+                    <p class="text-xs text-gray-500">Track your submitted issues</p>
+                </div>
+                <select onchange="filterMySubmissions(this.value)" class="text-xs p-2 border rounded-lg bg-white">
+                    <option value="All">Filter category / status: All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Prog">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+
+            <!-- Submissions Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-bgLight text-navy border-b">
+                            <th class="p-2.5">Category</th>
+                            <th class="p-2.5">Title</th>
+                            <th class="p-2.5">Status</th>
+                            <th class="p-2.5">Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody id="my-table-body" class="divide-y">
+                        <!-- Dynamically filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button onclick="showPage('student_dashboard')" class="mt-5 py-2 px-4 bg-tealDark text-white text-xs font-semibold rounded-xl hover:bg-navy">
+                ← Back to Dashboard
+            </button>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 8: ADMIN DASHBOARD (admin_dashboard.html) -->
+        <!-- ========================================== -->
+        <section id="page-admin_dashboard" class="page-view hidden w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-gray-100 text-center">
+            <div class="w-16 h-16 bg-navy/10 text-navy rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-navy mb-1">Welcome, Admin!</h2>
+            <p class="text-xs text-gray-500 mb-6">Manage complaints and departmental reports</p>
+
+            <div class="space-y-3 text-sm">
+                <button onclick="showPage('manage_issues')" class="w-full py-3 bg-tealDark text-white font-semibold rounded-xl hover:bg-navy transition flex items-center justify-center">
+                    <i class="fa-solid fa-list-check mr-2"></i> View & Manage Submissions
+                </button>
+                <button onclick="showPage('analytics')" class="w-full py-3 bg-tealLight text-navy font-semibold rounded-xl hover:bg-tealDark hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-chart-pie mr-2"></i> Analytics & Reports
+                </button>
+                <button onclick="showPage('login')" class="w-full py-2.5 border text-gray-600 font-medium rounded-xl hover:bg-gray-100 transition text-xs">
+                    Logout
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 9: MANAGE ISSUES (manage_issues.html) -->
+        <!-- ========================================== -->
+        <section id="page-manage_issues" class="page-view hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-navy">Manage Issues</h2>
+                    <p class="text-xs text-gray-500">Update issue status in real-time</p>
+                </div>
+                <select onchange="filterAdminIssues(this.value)" class="text-xs p-2 border rounded-lg bg-white">
+                    <option value="All">Filter: All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Prog">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+
+            <!-- Admin Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-bgLight text-navy border-b">
+                            <th class="p-2.5">Title</th>
+                            <th class="p-2.5">Category</th>
+                            <th class="p-2.5">Status</th>
+                            <th class="p-2.5">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body" class="divide-y">
+                        <!-- Dynamically filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button onclick="showPage('admin_dashboard')" class="mt-5 py-2 px-4 bg-tealDark text-white text-xs font-semibold rounded-xl hover:bg-navy">
+                ← Back to Dashboard
+            </button>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 10: ANALYTICS PAGE (analytics.html)   -->
+        <!-- ========================================== -->
+        <section id="page-analytics" class="page-view hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-bold text-navy">Feedback Analytics</h2>
+                <button onclick="showPage('admin_dashboard')" class="text-xs py-1.5 px-3 bg-tealDark text-white rounded-lg">
+                    Back to Dashboard
+                </button>
+            </div>
+
+            <!-- Satisfaction Score Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 text-center">
+                <div class="bg-bgLight p-3 rounded-xl border">
+                    <span class="text-xs text-gray-500">Satisfaction</span>
+                    <div class="text-2xl font-bold text-tealDark">4.2 / 5</div>
+                </div>
+                <div class="bg-bgLight p-3 rounded-xl border">
+                    <span class="text-xs text-gray-500">Total Feedback</span>
+                    <div class="text-2xl font-bold text-navy">184</div>
+                </div>
+                <div class="bg-bgLight p-3 rounded-xl border col-span-2 md:col-span-1">
+                    <span class="text-xs text-gray-500">Resolved Rate</span>
+                    <div class="text-2xl font-bold text-emerald-600">82%</div>
+                </div>
+            </div>
+
+            <!-- Department Chart Canvas -->
+            <div class="bg-bgLight p-4 rounded-xl border mb-5">
+                <h3 class="text-xs font-bold text-navy mb-2">Satisfaction By Department</h3>
+                <div class="h-40">
+                    <canvas id="simpleChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Insights Bullet Points -->
+            <div class="bg-navy text-white p-4 rounded-xl text-xs space-y-1.5">
+                <h3 class="font-bold text-tealLight mb-1"><i class="fa-solid fa-lightbulb"></i> Key Insights (Automated AIDS Engine):</h3>
+                <p>• <strong>Highest Satisfaction:</strong> AIDS department leads with an overall score of 4.6/5.</p>
+                <p>• <strong>Most Common Issues:</strong> Campus Wi-Fi disconnects and Hostel heater repairs.</p>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 11: COMMUNITY FEED (feed.html)        -->
+        <!-- ========================================== -->
+        <section id="page-feed" class="page-view hidden w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h2 class="text-xl font-bold text-navy"><i class="fa-solid fa-users text-tealLight mr-1"></i> Community Feed</h2>
+                <button onclick="showPage('student_dashboard')" class="text-xs text-gray-500 hover:text-navy">← Dashboard</button>
+            </div>
+
+            <!-- Create New Post Box -->
+            <div class="bg-bgLight p-3 rounded-xl border mb-4 text-xs space-y-2">
+                <textarea id="post-text" rows="2" placeholder="Write a query or complaint for peer discussion..." class="w-full p-2 border rounded-lg focus:outline-none resize-none"></textarea>
+                <div class="flex justify-between items-center">
+                    <select id="post-tag" class="p-1 border rounded bg-white">
+                        <option value="General">General</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="Wi-Fi">Wi-Fi</option>
+                    </select>
+                    <button onclick="addPost()" class="py-1.5 px-4 bg-tealDark text-white font-bold rounded-lg hover:bg-navy">
+                        Post
+                    </button>
+                </div>
+            </div>
+
+            <!-- Community Posts Feed Container -->
+            <div id="feed-posts" class="space-y-4">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-navy text-gray-400 text-xs py-3 text-center">
+        CampusPulse Minor Project © 2026 | B.Tech AIDS Team
+    </footer>
+
+
+    <!-- ========================================== -->
+    <!-- SIMPLE JAVASCRIPT LOGIC (EASY TO EXPLAIN)  -->
+    <!-- ========================================== -->
+    <script>
+        // --- 1. Global Data Variables ---
+        let selectedStars = 4;
+
+        let submissionsList = [
+            { id: 'CP-1024', category: 'Hostel', title: 'Heater in Room 302 not heating properly', status: 'Pending', rating: 4 },
+            { id: 'CP-1025', category: 'Cafe', title: 'Need more healthy snacks in cafeteria', status: 'Resolved', rating: 5 },
+            { id: 'CP-1026', category: 'Library', title: 'Wi-Fi connection drops on 2nd floor', status: 'In Prog', rating: 3 }
+        ];
+
+        let postsList = [
+            {
+                id: 1,
+                user: 'Aarav (AIDS 3rd Yr)',
+                time: '1 hr ago',
+                tag: 'Library',
+                text: 'Is anyone else having Wi-Fi issue near the library study cubicles?',
+                comments: ['Priya: Yes, it drops frequently.', 'Rahul: Admin is looking into it.']
+            }
+        ];
+
+        // --- 2. Page Navigation Function ---
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+
+            // Show selected page
+            const targetPage = document.getElementById('page-' + pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+
+            // Render tables/charts when page opens
+            if (pageId === 'my_submissions') renderMySubmissions(submissionsList);
+            if (pageId === 'manage_issues') renderAdminIssues(submissionsList);
+            if (pageId === 'analytics') renderSimpleChart();
+            if (pageId === 'feed') renderFeed();
+        }
+
+        // --- 3. Login & Signup Handlers ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const role = document.querySelector('input[name="loginRole"]:checked').value;
+            if (role === 'admin') {
+                showPage('admin_dashboard');
+            } else {
+                showPage('student_dashboard');
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            showPage('student_dashboard');
+        }
+
+        function toggleErrorAlert(show) {
+            const alertBox = document.getElementById('failed-login-alert');
+            if (show) alertBox.classList.remove('hidden');
+            else alertBox.classList.add('hidden');
+        }
+
+        // --- 4. Star Rating Selection ---
+        function selectStar(rating) {
+            selectedStars = rating;
+            document.getElementById('star-number').innerText = rating + '/5';
+            
+            const stars = document.querySelectorAll('#star-box i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('text-amber-400');
+                } else {
+                    star.classList.remove('text-amber-400');
+                }
+            });
+        }
+
+        // --- 5. Submit Feedback Handler ---
+        function handleFeedbackSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('feedback-title').value;
+            const cat = document.getElementById('feedback-category').value;
+            const newId = 'CP-' + Math.floor(1000 + Math.random() * 9000);
+
+            // Add new issue to global array
+            submissionsList.unshift({
+                id: newId,
+                category: cat,
+                title: title,
+                status: 'Pending',
+                rating: selectedStars
+            });
+
+            // Set labels on Success Page
+            document.getElementById('succ-id').innerText = newId;
+            document.getElementById('succ-cat').innerText = cat;
+            document.getElementById('succ-rate').innerText = selectedStars + ' / 5 ★';
+
+            // Reset form
+            document.getElementById('feedback-title').value = '';
+            document.getElementById('feedback-desc').value = '';
+
+            showPage('success');
+        }
+
+        // --- 6. Render Tables (Student & Admin) ---
+        function renderMySubmissions(data) {
+            const tbody = document.getElementById('my-table-body');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                let badgeClass = 'bg-amber-100 text-amber-800';
+                if (item.status === 'In Prog') badgeClass = 'bg-blue-100 text-blue-800';
+                if (item.status === 'Resolved') badgeClass = 'bg-emerald-100 text-emerald-800';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-bold">${item.category}</td>
+                        <td class="p-2.5">${item.title}</td>
+                        <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${item.status}</span></td>
+                        <td class="p-2.5 font-bold text-amber-500">${item.rating} ★</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterMySubmissions(val) {
+            if (val === 'All') renderMySubmissions(submissionsList);
+            else renderMySubmissions(submissionsList.filter(s => s.status === val || s.category === val));
+        }
+
+        function renderAdminIssues(data) {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                let badgeClass = 'bg-amber-100 text-amber-800';
+                if (item.status === 'In Prog') badgeClass = 'bg-blue-100 text-blue-800';
+                if (item.status === 'Resolved') badgeClass = 'bg-emerald-100 text-emerald-800';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-semibold text-navy">${item.title}</td>
+                        <td class="p-2.5 text-gray-600">${item.category}</td>
+                        <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${item.status}</span></td>
+                        <td class="p-2.5">
+                            <button onclick="changeStatus('${item.id}', 'In Prog')" class="px-2 py-1 bg-tealDark text-white text-[10px] rounded">In Prog</button>
+                            <button onclick="changeStatus('${item.id}', 'Resolved')" class="px-2 py-1 bg-tealLight text-navy font-bold text-[10px] rounded">Resolve</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function changeStatus(id, newStatus) {
+            const match = submissionsList.find(i => i.id === id);
+            if (match) match.status = newStatus;
+            renderAdminIssues(submissionsList);
+        }
+
+        function filterAdminIssues(val) {
+            if (val === 'All') renderAdminIssues(submissionsList);
+            else renderAdminIssues(submissionsList.filter(s => s.status === val));
+        }
+
+        // --- 7. Community Feed Functions ---
+        function renderFeed() {
+            const feedContainer = document.getElementById('feed-posts');
+            feedContainer.innerHTML = '';
+
+            postsList.forEach(post => {
+                let commentsHtml = '';
+                post.comments.forEach(c => {
+                    commentsHtml += `<div class="bg-gray-100 p-2 rounded text-[11px] text-gray-700">${c}</div>`;
+                });
+
+                feedContainer.innerHTML += `
+                    <div class="border p-4 rounded-xl space-y-2 bg-white">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-navy">${post.user} • <span class="text-gray-400 font-normal">${post.time}</span></span>
+                            <span class="px-2 py-0.5 bg-tealLight/20 text-tealDark rounded text-[10px] font-bold">${post.tag}</span>
+                        </div>
+                        <p class="text-xs text-gray-800">${post.text}</p>
+                        <div class="space-y-1.5 pt-2 border-t">
+                            ${commentsHtml}
+                            <div class="flex gap-2 pt-1">
+                                <input type="text" id="reply-input-${post.id}" placeholder="Write a reply..." class="w-full text-xs p-1.5 border rounded">
+                                <button onclick="addComment(${post.id})" class="px-3 py-1 bg-tealDark text-white text-xs rounded">Reply</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addPost() {
+            const text = document.getElementById('post-text').value;
+            const tag = document.getElementById('post-tag').value;
+            if (!text.trim()) return;
+
+            postsList.unshift({
+                id: Date.now(),
+                user: 'You (AIDS Student)',
+                time: 'Just now',
+                tag: tag,
+                text: text,
+                comments: []
+            });
+
+            document.getElementById('post-text').value = '';
+            renderFeed();
+        }
+
+        function addComment(postId) {
+            const input = document.getElementById(`reply-input-${postId}`);
+            if (input && input.value.trim()) {
+                const post = postsList.find(p => p.id === postId);
+                if (post) {
+                    post.comments.push('You: ' + input.value.trim());
+                    renderFeed();
+                }
+            }
+        }
+
+        // --- 8. Simple Analytics Bar Chart ---
+        let myChart = null;
+        function renderSimpleChart() {
+            const ctx = document.getElementById('simpleChart');
+            if (!ctx) return;
+
+            if (myChart) myChart.destroy(); // Clear existing chart before re-drawing
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['AIDS', 'CSE', 'ECE'],
+                    datasets: [{
+                        label: 'Satisfaction Score (1-5)',
+                        data: [4.6, 4.2, 3.9],
+                        backgroundColor: ['#39B7A5', '#216B83', '#142D4E']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { min: 0, max: 5 } }
+                }
+            });
+        }
+
+        // Start App on Load
+        window.onload = function() {
+            showPage('home');
+        };
+    </script>
+</body>
+</html>
