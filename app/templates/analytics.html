@@ -7,11 +7,19 @@
 {% endblock %}
 
 {% block content %}
-<section class="w-full max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+<!-- Hidden container holding JSON data to prevent VS Code JS linter errors and undefined crashes -->
+<div id="analytics-data" 
+     data-dept-labels='{{ chart_data.dept_labels | tojson | safe }}'
+     data-dept-values='{{ chart_data.dept_values | tojson | safe }}'
+     data-cat-labels='{{ chart_data.cat_labels | tojson | safe }}'
+     data-cat-values='{{ chart_data.cat_values | tojson | safe }}'>
+</div>
+
+<section class="w-full max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-100 my-6">
     <div class="flex justify-between items-center mb-6 border-b pb-4">
         <h2 class="text-2xl font-bold text-gray-800">📊 Feedback Analytics Dashboard</h2>
         <a href="{{ url_for('feed.view_feed') }}" class="text-sm py-2 px-4 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
-            Back to Dashboard
+            Back to Feed
         </a>
     </div>
 
@@ -19,15 +27,15 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
         <div class="bg-gray-50 p-4 rounded-xl border">
             <span class="text-sm text-gray-500 font-semibold">Overall Satisfaction</span>
-            <div class="text-3xl font-bold text-indigo-600 mt-1">{{ overall_satisfaction }} / 5</div>
+            <div class="text-3xl font-bold text-indigo-600 mt-1">{{ metrics.overall_satisfaction }} / 5</div>
         </div>
         <div class="bg-gray-50 p-4 rounded-xl border">
             <span class="text-sm text-gray-500 font-semibold">Highest Department</span>
-            <div class="text-2xl font-bold text-green-600 mt-1">{{ highest_dept }}</div>
+            <div class="text-2xl font-bold text-green-600 mt-1">{{ metrics.highest_dept }}</div>
         </div>
         <div class="bg-gray-50 p-4 rounded-xl border">
             <span class="text-sm text-gray-500 font-semibold">Lowest Department</span>
-            <div class="text-2xl font-bold text-red-600 mt-1">{{ lowest_dept }}</div>
+            <div class="text-2xl font-bold text-red-600 mt-1">{{ metrics.lowest_dept }}</div>
         </div>
     </div>
 
@@ -35,11 +43,13 @@
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-xl shadow-sm">
         <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2">💡 Automated Key Insights</h3>
         <ul class="list-disc pl-5 space-y-1 text-yellow-900 text-sm">
-            {% for insight in insights %}
-                <li>{{ insight }}</li>
+            {% if insights %}
+                {% for insight in insights %}
+                    <li>{{ insight }}</li>
+                {% endfor %}
             {% else %}
                 <p class="text-gray-500 italic">Not enough data yet to generate insights.</p>
-            {% endfor %}
+            {% endif %}
         </ul>
     </div>
 
@@ -59,15 +69,22 @@
 
 {% block scripts %}
 <script>
+    // Read data safely from HTML attributes
+    const dataContainer = document.getElementById('analytics-data');
+    const deptLabels = JSON.parse(dataContainer.dataset.deptLabels || '[]');
+    const deptValues = JSON.parse(dataContainer.dataset.deptValues || '[]');
+    const catLabels = JSON.parse(dataContainer.dataset.catLabels || '[]');
+    const catValues = JSON.parse(dataContainer.dataset.catValues || '[]');
+
     // Department Chart
     const deptCtx = document.getElementById('deptChart').getContext('2d');
     new Chart(deptCtx, {
         type: 'bar',
         data: {
-            labels: JSON.parse('{{ chart_data.dept_labels | tojson | safe }}'),
+            labels: deptLabels,
             datasets: [{
                 label: 'Average Rating',
-                data: JSON.parse('{{ chart_data.dept_values | tojson | safe }}'),
+                data: deptValues,
                 backgroundColor: '#4F46E5',
                 borderRadius: 4
             }]
@@ -84,10 +101,10 @@
     new Chart(facilityCtx, {
         type: 'bar',
         data: {
-            labels: JSON.parse('{{ chart_data.cat_labels | tojson | safe }}'),
+            labels: catLabels,
             datasets: [{
                 label: 'Average Rating',
-                data: JSON.parse('{{ chart_data.cat_values | tojson | safe }}'),
+                data: catValues,
                 backgroundColor: '#10B981',
                 borderRadius: 4
             }]

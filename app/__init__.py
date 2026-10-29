@@ -8,14 +8,11 @@ from flask_wtf.csrf import CSRFProtect
 load_dotenv()
 db = SQLAlchemy()
 csrf = CSRFProtect()
-db_url = os.environ.get("DATABASE_URL", "sqlite:///campus_pulse.db")
+
 def create_app():
     app = Flask(__name__)
 
-    # Configuration (settings stay here, no config.py needed)
-    
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-only-change-me')
-
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
@@ -26,27 +23,24 @@ def create_app():
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['POSTS_PER_PAGE'] = 10
-    # Only admins can post in these categories. Use set() to let students post notices too.
     app.config['ADMIN_ONLY_CATEGORIES'] = {'Notices'}
 
     db.init_app(app)
     csrf.init_app(app)
 
+    # Models aur Blueprints import karein
     from app.models import CATEGORIES, DEPARTMENTS, User
     from app.auth import auth_bp
     from app.feed import feed_bp
     from app.admin import admin_bp
-    from app.feedback import feedback_bp  
+    from app.feedback import feedback_bp
+    from app.routes.analytics_routes import analytics_bp
     
+    # Blueprints ko sirf ek baar register karein
     app.register_blueprint(auth_bp)
     app.register_blueprint(feed_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(feedback_bp)
-    from app.routes.analytics_routes import analytics_bp
-
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(feed_bp)
-    app.register_blueprint(admin_bp)
     app.register_blueprint(analytics_bp)
 
     @app.before_request
@@ -59,20 +53,26 @@ def create_app():
     @app.context_processor
     def inject_globals():
         return {'current_user': g.get('user'), 'CATEGORIES': CATEGORIES, 'DEPARTMENTS': DEPARTMENTS}
-
     @app.route('/')
     def home():
-        if g.user:
-            target = 'admin.moderation' if g.user.is_admin else 'feed.view_feed'
-            return redirect(url_for(target))
+        # Agar user pehle se logged in hai, tabhi role ke hisab se dashboard par bhejo
+        if 'user_id' in session:
+            # Agar g.user available hai toh role check karo
+            if g.get('user') and g.user.is_admin:
+                return redirect(url_for('admin.dashboard'))
+            elif g.get('user'):
+                return redirect(url_for('feedback.dashboard'))
+        
+        # Agar logged in nahi hai, toh seedha home.html render karo (redirect mat karo!)
         return render_template('home.html')
+    # Navigation Diagram ke mutabiq Entry Point & Role Check
+    # Seedha real login page par bhej dega # Naya index.html landing page
 
     @app.cli.command('create-admin')
     @click.argument('email')
     @click.argument('name')
     @click.password_option()
     def create_admin(email, name, password):
-        """Create an admin: flask --app <your_entry_file> create-admin EMAIL NAME"""
         email = email.strip().lower()
         if User.query.filter_by(email=email).first():
             click.echo('A user with that email already exists.')

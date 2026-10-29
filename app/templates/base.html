@@ -26,7 +26,7 @@
 </head>
 <body class="bg-bgLight text-gray-800 font-sans min-h-screen flex flex-col">
 
-    <!-- HEADER -->
+    <!-- HEADER & NAVBAR -->
     <header class="bg-navy text-white p-4 shadow-md sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
 
@@ -38,50 +38,33 @@
                 </div>
             </a>
 
-  .badge-category {
-    background-color: var(--secondary-teal);
-    color: #ffffff;
-  }
-</style>
-</head>
-<body class="bg-light">
-<nav class="navbar navbar-expand navbar-dark bg-primary mb-4">
-    <div class="container" style="max-width: 800px;">
-        <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">CampusPulse</a>
-        <ul class="navbar-nav ms-auto align-items-center">
-            {% if current_user %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('feed.view_feed') }}">Feed</a></li>
-                {% if current_user.is_admin %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.manage') }}">Manage Issues</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.moderation') }}">Moderation</a></li>
-                {% else %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.submit') }}">Submit Feedback</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback.my_submissions') }}">My Submissions</a></li>
-                {% endif %}
-                <li class="nav-item text-white-50 small mx-2">{{ current_user.name }}</li>
-                <li class="nav-item">
-                    <form action="{{ url_for('auth.logout') }}" method="POST" class="d-inline">
             <nav class="flex flex-wrap items-center justify-center gap-2 text-sm">
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
-                        <i class="fa-solid fa-comments mr-1"></i> Feed
-                    </a>
-                    <a href="{{ url_for('feed.analytics_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
-                        <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
-                    </a>
-                    {% if current_user.is_admin %}
-                        <a href="{{ url_for('admin.moderation') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">
-                            <i class="fa-solid fa-shield-halved mr-1"></i> Moderation
-                        </a>
+                {% if g.user %}
+                    {% if g.user.is_admin %}
+                        <!-- Admin Specific Options -->
+                        <a href="{{ url_for('admin.dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Admin Dashboard</a>
+                        <a href="{{ url_for('admin.manage_issues') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Manage Issues</a>
+                        <a href="{{ url_for('admin.moderation_queue') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Moderation</a>
+                        <!-- Yahan Admin ke liye Community Feed link add kiya gaya hai -->
+                        <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Community Feed</a>
+                        <a href="{{ url_for('analytics.analytics_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Analytics</a>
+                    {% else %}
+                        <!-- Student Specific Options -->
+                        <a href="{{ url_for('feedback.dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Student Dashboard</a>
+                        <a href="{{ url_for('feedback.submit') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Submit Feedback</a>
+                        <a href="{{ url_for('feedback.my_submissions') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">My Submissions</a>
+                        <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Community Feed</a>
+                        <a href="{{ url_for('analytics.analytics_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Analytics</a>
                     {% endif %}
-                    <span class="px-2 text-tealLight hidden sm:inline">
-                        <i class="fa-solid fa-user mr-1"></i>{{ current_user.name }}{% if current_user.is_admin %} (Admin){% endif %}
-                    </span>
+                    
+                    <span class="px-2 text-tealLight hidden sm:inline"><i class="fa-solid fa-user mr-1"></i>{{ g.user.name }}</span>
+                    
                     <form method="POST" action="{{ url_for('auth.logout') }}" class="inline">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded transition font-medium">Logout</button>
                     </form>
                 {% else %}
+                    <!-- Public Links Jab User Logged-out Ho -->
                     <a href="{{ url_for('home') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Home</a>
                     <a href="{{ url_for('auth.login') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Login</a>
                     <a href="{{ url_for('auth.signup') }}" class="px-3 py-1.5 bg-tealLight text-navy hover:bg-white rounded transition font-medium">Sign Up</a>
@@ -120,6 +103,7 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- FOOTER -->
     <footer class="bg-navy text-gray-400 text-xs py-3 text-center">
         CampusPulse Minor Project &copy; 2026 | B.Tech AIDS Team
     </footer>

@@ -1,39 +1,63 @@
 {% extends "base.html" %}
 {% block title %}Submit Feedback - CampusPulse{% endblock %}
+
 {% block content %}
-<div class="card p-4 mx-auto" style="border-top: 4px solid var(--secondary-teal);">
-    <h4 class="mb-1" style="color: var(--primary-dark);">Submit Feedback</h4>
-    <p class="text-muted small">Your rating helps the college see which facilities need attention.</p>
-    <form method="POST">
+<div class="w-full max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100 my-4" style="border-top: 4px solid #216B83;">
+    <h4 class="text-xl font-bold mb-1" style="color: #142D4E;">Submit Feedback</h4>
+    <p class="text-gray-500 text-sm mb-6">Your rating helps the college see which facilities need attention.</p>
+    
+    <form method="POST" class="space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Category</label>
-            <select name="category" class="form-select" required>
+        
+        <!-- Category -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Category</label>
+            <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight text-sm bg-white" required>
                 <option value="" disabled {{ 'selected' if not form.get('category') }}>Select category</option>
-                {% for c in categories %}<option value="{{ c }}" {{ 'selected' if form.get('category') == c }}>{{ c }}</option>{% endfor %}
+                {% for c in categories %}
+                    <option value="{{ c }}" {{ 'selected' if form.get('category') == c }}>{{ c }}</option>
+                {% endfor %}
             </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold">Issue title</label>
-            <input name="title" class="form-control" maxlength="150" value="{{ form.get('title', '') }}" placeholder="e.g. Wi-Fi drops in hostel block B" required>
+
+        <!-- Issue Title -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Issue title</label>
+            <input name="title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight text-sm" maxlength="150" value="{{ form.get('title', '') }}" placeholder="e.g. Wi-Fi drops in hostel block B" required>
         </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold">Description</label>
-            <textarea name="description" class="form-control" rows="4" maxlength="2000" placeholder="Describe the issue or your feedback..." required>{{ form.get('description', '') }}</textarea>
+
+        <!-- Description -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>
+            <textarea name="description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight text-sm" rows="4" maxlength="2000" placeholder="Describe the issue or your feedback..." required>{{ form.get('description', '') }}</textarea>
         </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold">Rating (1 = very poor, 5 = excellent)</label>
-            <select name="rating" class="form-select" required>
+
+        <!-- Rating -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Rating (1 = very poor, 5 = excellent)</label>
+            <select name="rating" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight text-sm bg-white" required>
                 <option value="" disabled {{ 'selected' if not form.get('rating') }}>Select rating</option>
-                {% for r in [5, 4, 3, 2, 1] %}<option value="{{ r }}" {{ 'selected' if form.get('rating') == r|string }}>{{ r }}</option>{% endfor %}
+                {% for r in [5, 4, 3, 2, 1] %}
+                    <option value="{{ r }}" {{ 'selected' if form.get('rating') == r|string }}>{{ r }}</option>
+                {% endfor %}
             </select>
         </div>
-        <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" name="anonymous" id="anon" {{ 'checked' if form.get('anonymous') }}>
-            <label class="form-check-label" for="anon">Submit anonymously (your name is hidden in the admin list)</label>
+
+        <!-- Anonymous Checkbox -->
+        <div class="flex items-center gap-2 pt-1">
+            <input class="w-4 h-4 text-tealDark border-gray-300 rounded focus:ring-tealLight" type="checkbox" name="anonymous" id="anon" {{ 'checked' if form.get('anonymous') }}>
+            <label class="text-sm text-gray-700 select-none cursor-pointer" for="anon">Submit anonymously (your name is hidden in the admin list)</label>
         </div>
-        <p class="small text-muted">Department: <strong>{{ current_user.department or 'Not set' }}</strong> (taken from your profile)</p>
-        <button class="btn btn-primary w-100 fw-bold">Submit Feedback</button>
+
+        <!-- Department info -->
+        <p class="text-xs text-gray-500 pt-1">
+            Department: <strong class="text-gray-700">{{ g.user.department if g.user else (current_user.department if current_user else 'Not set') }}</strong> (taken from your profile)
+        </p>
+
+        <!-- Submit Button -->
+        <button type="submit" class="w-full py-2.5 px-4 bg-tealDark hover:bg-tealLight hover:text-navy text-white font-bold rounded-lg shadow transition duration-200 mt-4 text-sm">
+            Submit Feedback
+        </button>
     </form>
 </div>
 {% endblock %}

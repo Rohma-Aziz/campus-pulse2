@@ -1,55 +1,53 @@
 {% extends "base.html" %}
-{% from "_macros.html" import status_badge, stars, pager %}
+{% from "_macros.html" import status_badge, stars %}
 {% block title %}My Submissions - CampusPulse{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 style="color: var(--primary-dark); font-weight: 700;">My Submissions</h3>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('feedback.submit') }}">+ New Feedback</a>
-</div>
-
-<form method="GET" class="card p-3 mb-3">
-    <div class="row g-2">
-        <div class="col-6">
-            <select name="category" class="form-select form-select-sm">
-                <option value="">All categories</option>
-                {% for c in categories %}<option {{ 'selected' if category == c }}>{{ c }}</option>{% endfor %}
-            </select>
-        </div>
-        <div class="col-6">
-            <select name="status" class="form-select form-select-sm">
-                <option value="">All statuses</option>
-                {% for s in statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}
-            </select>
-        </div>
-        <div class="col-12 d-flex gap-2">
-            <button class="btn btn-sm btn-primary">Filter</button>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('feedback.my_submissions') }}">Clear</a>
-        </div>
+<section class="w-full max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-list text-tealDark"></i> My Submissions
+        </h2>
+        <!-- Back to Dashboard button fixed -->
+        <a href="{{ url_for('feed.view_feed') }}" class="text-sm py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg shadow-sm transition flex items-center gap-1 font-medium">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
-</form>
 
-{% for item in items %}
-<div class="card p-3 mb-3">
-    <div class="d-flex justify-content-between align-items-start mb-1">
-        <div>
-            <span class="badge badge-category">{{ item.category }}</span>
-            {{ status_badge(item.status) }}
-            <span class="small text-muted ms-1">CP-{{ '%04d'|format(item.id) }}</span>
+    {% if submissions %}
+        <div class="space-y-4">
+            {% for item in submissions %}
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow transition">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">{{ item.category }}</span>
+                        <span class="ml-2">{{ status_badge(item.status) }}</span>
+                    </div>
+                    <small class="text-gray-400 font-medium">Submitted on: {{ item.created_at.strftime('%d Oct %Y, %H:%M') }}</small>
+                </div>
+                
+                <h4 class="font-bold text-gray-800 text-lg mb-1">{{ item.title }}</h4>
+                <p class="text-sm text-gray-600 mb-3 whitespace-pre-wrap">{{ item.description }}</p>
+                
+                <div class="flex flex-wrap justify-between items-center text-xs text-gray-500 border-t pt-3 mt-2">
+                    <div>Rating: <span class="text-amber-500 font-bold">{{ item.rating }}/5</span> &middot; Dept: {{ item.department or 'General' }}</div>
+                    {% if item.admin_note %}
+                        <div class="text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg mt-1 sm:mt-0">
+                            <strong>Admin Reply:</strong> {{ item.admin_note }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        <small class="text-muted">{{ item.created_at.strftime('%Y-%m-%d') }}</small>
-    </div>
-    <h6 class="mb-1">{{ item.title }}</h6>
-    <p class="small mb-1" style="white-space: pre-wrap;">{{ item.description }}</p>
-    <div class="small">Rating: {{ stars(item.rating) }}{% if item.is_anonymous %} &middot; <span class="text-muted">Anonymous</span>{% endif %}</div>
-    {% if item.admin_note %}
-    <div class="alert alert-info py-2 px-3 mt-2 mb-0 small"><strong>Admin reply:</strong> {{ item.admin_note }}</div>
+    {% else %}
+        <div class="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+            <i class="fa-regular fa-folder-open text-4xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600 font-medium">You haven't submitted any feedback or issues yet.</p>
+            <a href="{{ url_for('feedback.submit') }}" class="mt-4 inline-block px-4 py-2 bg-tealDark text-white text-sm rounded-lg hover:bg-tealLight hover:text-navy transition font-medium">
+                Submit Feedback Now
+            </a>
+        </div>
     {% endif %}
-</div>
-{% else %}
-<div class="card p-4 text-center text-muted">
-    {% if category or status %}No submissions match these filters.{% else %}You haven't submitted any feedback yet.{% endif %}
-</div>
-{% endfor %}
-
-{{ pager(pagination, 'feed.my_submissions', category=category, status=status) }}
+</section>
 {% endblock %}

@@ -1,182 +1,174 @@
 {% extends "base.html" %}
-{% block title %}Community Feed{% endblock %}
-
-{% macro stamp(dt) -%}
-    {%- if dt -%}<time data-utc="{{ dt.strftime('%Y-%m-%dT%H:%M:%S') }}Z">{{ dt.strftime('%d %b %Y, %I:%M %p') }} UTC</time>{%- endif -%}
-{%- endmacro %}
+{% block title %}Community Feed - CampusPulse{% endblock %}
 
 {% block content %}
-<section class="w-full max-w-2xl">
+<div class="w-full max-w-3xl mx-auto space-y-6 py-4">
+  
+  <!-- Page Title -->
+  <div class="text-center mb-4">
+    <h2 class="text-2xl font-bold text-navy">Campus Community Feed</h2>
+  </div>
 
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-navy"><i class="fa-solid fa-users text-tealLight mr-1"></i> Community Feed</h2>
-        {% if current_user.is_admin %}
-            <a href="{{ url_for('admin.moderation') }}" class="text-sm text-tealDark font-semibold hover:underline">Moderation queue &rarr;</a>
-        {% endif %}
-    </div>
+  <!-- Post Submission Box -->
+  <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100" style="border-top: 4px solid #216B83;">
+    <h5 class="text-base font-bold text-navy mb-3">Share a query, complaint, event feedback or idea</h5>
+    <form action="{{ url_for('feed.create_post') }}" method="POST" data-no-restore class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      <div>
+        <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-tealLight focus:outline-none text-sm bg-white" required>
+          <option value="" disabled selected>Select category</option>
+          {% for cat in postable %}
+            <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <!-- Category filter -->
-    <div class="flex flex-wrap gap-2 mb-4 text-xs">
-        <a href="{{ url_for('feed.view_feed') }}"
-           class="px-3 py-1 rounded-full border {{ 'bg-navy text-white border-navy' if not category else 'bg-white text-gray-600 hover:bg-gray-100' }}">All</a>
-        {% for c in CATEGORIES %}
-            <a href="{{ url_for('feed.view_feed', category=c) }}"
-               class="px-3 py-1 rounded-full border {{ 'bg-navy text-white border-navy' if category == c else 'bg-white text-gray-600 hover:bg-gray-100' }}">{{ c }}</a>
-        {% endfor %}
-    </div>
+      <div>
+        <textarea name="content" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-tealLight focus:outline-none text-sm resize-none bg-gray-50" rows="3" placeholder="What's on your mind regarding the campus?" required></textarea>
+      </div>
 
-    <!-- Create post -->
-    <form method="POST" action="{{ url_for('feed.create_post') }}" class="bg-white p-4 rounded-2xl shadow border border-gray-100 mb-5 text-sm space-y-2">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="content" class="sr-only">Write a post</label>
-        <textarea id="content" name="content" required rows="3" minlength="5" maxlength="{{ post_max }}"
-                  placeholder="Share a query, complaint or idea with your campus..."
-                  class="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight resize-none"></textarea>
-        <div class="flex flex-wrap justify-between items-center gap-2">
-            <div class="flex flex-wrap items-center gap-3">
-                <select name="category" required class="p-2 border rounded-lg bg-white" aria-label="Category">
-                    <option value="" disabled {{ 'selected' if not category }}>Category</option>
-                    {% for c in postable %}
-                        <option value="{{ c }}" {{ 'selected' if category == c }}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-                <label class="flex items-center gap-1 text-gray-600 cursor-pointer">
-                    <input type="checkbox" name="anonymous" value="1"> Post anonymously
-                </label>
-            </div>
-            <button type="submit" class="py-2 px-5 bg-tealDark text-white font-bold rounded-lg hover:bg-navy transition">Post</button>
-        </div>
-        <p class="text-xs text-gray-400">{{ 5 }}&ndash;{{ post_max }} characters.</p>
+      <div class="flex items-center gap-2">
+        <input class="w-4 h-4 text-tealDark border-gray-300 rounded focus:ring-tealLight" type="checkbox" name="anonymous" id="anonymousCheck">
+        <label class="text-sm text-gray-500 cursor-pointer select-none" for="anonymousCheck">
+          Post anonymously (other students won't see my name)
+        </label>
+      </div>
+
+      <button type="submit" class="w-full py-2.5 bg-tealDark hover:bg-tealLight hover:text-navy text-white font-bold rounded-xl shadow transition duration-200 text-sm">
+        Post to Campus
+      </button>
     </form>
+  </div>
 
-    <!-- Posts -->
-    <div class="space-y-4">
-        {% for post in posts %}
-        <article class="bg-white p-4 rounded-2xl shadow border border-gray-100 space-y-3">
-            <div class="flex justify-between items-start gap-2 text-sm">
-                <div>
-                    <span class="font-bold text-navy">
-                        {% if post.is_anonymous %}
-                            <i class="fa-solid fa-user-secret text-gray-400 mr-1"></i>Anonymous
-                            {% if current_user.is_admin %}<span class="text-xs font-normal text-gray-400">({{ post.author.name }})</span>{% endif %}
-                        {% else %}
-                            {{ post.author.name }}{% if post.author.department %} <span class="font-normal text-gray-400">({{ post.author.department }})</span>{% endif %}
-                        {% endif %}
-                    </span>
-                    <div class="text-xs text-gray-400">{{ stamp(post.created_at) }}</div>
-                </div>
-                <div class="flex items-center gap-2">
-                    {% if post.is_hidden %}
-                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-bold">Hidden</span>
-                    {% endif %}
-                    <span class="px-2 py-0.5 bg-tealLight/20 text-tealDark rounded text-xs font-bold">{{ post.category }}</span>
-                </div>
+  <!-- Category Filter Pills -->
+  <div class="mb-4 flex flex-wrap gap-2 justify-center">
+    <a class="px-3 py-1.5 text-xs font-semibold rounded-full transition {{ 'bg-navy text-white' if not category else 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}" href="{{ url_for('feed.view_feed') }}">All</a>
+    {% for c in CATEGORIES %}
+    <a class="px-3 py-1.5 text-xs font-semibold rounded-full transition {{ 'bg-navy text-white' if category == c else 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}" href="{{ url_for('feed.view_feed', category=c) }}">{{ c }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Safe Pagination Controls -->
+  {% if pagination and pagination.pages > 1 %}
+  <div class="flex justify-between items-center bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 text-sm mb-4">
+    {% if pagination.has_prev %}<a class="text-tealDark hover:underline font-medium" href="{{ url_for('feed.view_feed', page=pagination.prev_num, category=category) }}">&laquo; Newer</a>{% else %}<span></span>{% endif %}
+    <span class="text-xs text-gray-500">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}<a class="text-tealDark hover:underline font-medium" href="{{ url_for('feed.view_feed', page=pagination.next_num, category=category) }}">Older &raquo;</a>{% else %}<span></span>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Feed Items -->
+  <div class="space-y-4">
+    {% for post in posts %}
+    <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100 space-y-3" id="post-{{ post.id }}">
+      <div class="flex justify-between items-center">
+        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">{{ post.category }}</span>
+        <small class="text-xs text-gray-400">
+          {% if post.is_anonymous %}
+            Anonymous
+          {% elif post.user %}
+            {{ post.user.username or post.user.name }}
+          {% elif post.author %}
+            {{ post.author.username or post.author.name }}
+          {% else %}
+            Student
+          {% endif %}
+          &bull; {{ post.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </small>
+      </div>
+      
+      <p class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{{ post.content }}</p>
+
+      <div class="flex justify-between items-center pt-3 border-t border-gray-100 text-xs">
+        <!-- Like Form -->
+        <form action="{{ url_for('feed.toggle_like', post_id=post.id) }}" method="POST" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="px-3 py-1.5 rounded-lg font-medium transition {{ 'bg-red-50 text-red-600 border border-red-200' if post.id in liked else 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+            <i class="fa-regular fa-heart mr-1"></i> Like ({{ post.likes|length }})
+          </button>
+        </form>
+        
+        <div class="flex items-center gap-2">
+          <!-- Report Form -->
+          <form action="{{ url_for('feed.report_post', post_id=post.id) }}" method="POST" class="inline flex items-center gap-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="reason" class="px-2 py-1 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none" required>
+              <option value="" disabled selected>Reason...</option>
+              {% for reason in report_reasons %}
+                <option value="{{ reason }}">{{ reason }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition font-medium"
+              {% if post.id in reported %}disabled{% endif %}>
+              {% if post.id in reported %}Reported{% else %}⚠️ Report{% endif %}
+            </button>
+          </form>
+
+          <!-- Delete Form -->
+          {% if post.user_id == g.user.id or g.user.is_admin %}
+          <form action="{{ url_for('feed.delete_post', post_id=post.id) }}" method="POST" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition font-medium">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="mt-3 pt-3 border-t border-gray-100 bg-gray-50 p-3 rounded-xl space-y-3">
+        {% set shown = post.comments if g.user.is_admin else (post.comments|rejectattr('is_hidden')|list) %}
+        <div class="text-xs font-bold text-gray-500">Comments ({{ shown|length }})</div>
+
+        {% for comment in shown %}
+        {% set already_reported = comment.reports|selectattr('user_id', 'equalto', g.user.id)|list|length > 0 %}
+        <div class="p-2.5 bg-white rounded-xl border border-gray-100 flex justify-between items-center {% if comment.is_hidden %}opacity-50{% endif %}">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-navy">{{ comment.author.name if comment.author else 'Student' }}</span>
+              <span class="text-[10px] text-gray-400">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
             </div>
+            <p class="text-xs text-gray-700">{{ comment.comment_text }}</p>
+            {% if comment.is_hidden %}
+            <span class="text-[10px] text-red-500 block">Hidden from students ({{ comment.reports|length }} reports)</span>
+            {% endif %}
+          </div>
 
-            <p class="text-sm text-gray-800 whitespace-pre-line break-words">{{ post.content }}</p>
+          <div class="flex items-center gap-2">
+            {% if comment.user_id != g.user.id %}
+            <form action="{{ url_for('feed.report_comment', comment_id=comment.id) }}" method="POST" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-amber-500 hover:text-amber-700 text-xs p-1"
+                      {% if already_reported %}disabled title="You already reported this"{% else %}title="Report comment"{% endif %}>⚠️</button>
+            </form>
+            {% endif %}
 
-            <!-- Actions: like / report / delete -->
-            <div class="flex flex-wrap items-center gap-2 text-xs pt-2 border-t">
-                <form method="POST" action="{{ url_for('feed.toggle_like', post_id=post.id) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="px-3 py-1.5 rounded-lg border flex items-center gap-1 {{ 'bg-rose-50 text-rose-600 border-rose-200' if post.id in liked else 'text-gray-600 hover:bg-gray-100' }}">
-                        <i class="fa-{{ 'solid' if post.id in liked else 'regular' }} fa-heart"></i> {{ post.likes|length }}
-                    </button>
-                </form>
-
-                {% if post.id in reported %}
-                    <span class="text-gray-400 px-2"><i class="fa-solid fa-flag mr-1"></i>Reported</span>
-                {% elif post.user_id != current_user.id %}
-                    <form method="POST" action="{{ url_for('feed.report_post', post_id=post.id) }}" class="flex items-center gap-1">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <select name="reason" required class="p-1.5 border rounded-lg bg-white text-xs" aria-label="Report reason">
-                            <option value="" disabled selected>Report...</option>
-                            {% for r in report_reasons %}
-                                <option value="{{ r }}">{{ r }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="px-2.5 py-1.5 border rounded-lg text-gray-600 hover:bg-gray-100">
-                            <i class="fa-regular fa-flag"></i>
-                        </button>
-                    </form>
-                {% endif %}
-
-                {% if post.user_id == current_user.id or current_user.is_admin %}
-                    <form method="POST" action="{{ url_for('feed.delete_post', post_id=post.id) }}" class="ml-auto"
-                          onsubmit="return confirm('Delete this post?');">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50">
-                            <i class="fa-regular fa-trash-can mr-1"></i>Delete
-                        </button>
-                    </form>
-                {% endif %}
-            </div>
-
-            <!-- Comments -->
-            <div class="space-y-1.5">
-                {% for comment in post.comments %}
-                    {% if comment.is_hidden and not current_user.is_admin %}
-                        <div class="bg-gray-50 p-2 rounded text-xs text-gray-400 italic">This comment was hidden after reports.</div>
-                    {% else %}
-                        <div class="p-2 rounded text-xs {{ 'bg-tealLight/10 border border-tealLight/40' if comment.is_official else 'bg-gray-100' }} text-gray-700">
-                            <div class="flex justify-between items-start gap-2">
-                                <div class="break-words">
-                                    <strong>{{ comment.author.name }}</strong>
-                                    {% if comment.is_official %}<span class="px-1.5 py-0.5 bg-tealDark text-white rounded text-[10px] font-bold ml-1">Official</span>{% endif %}
-                                    {% if comment.is_hidden %}<span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold ml-1">Hidden</span>{% endif %}
-                                    <span class="text-gray-400 ml-1">&bull; {{ stamp(comment.created_at) }}</span>
-                                    <div class="mt-0.5 whitespace-pre-line">{{ comment.comment_text }}</div>
-                                </div>
-                                <div class="flex items-center gap-1 shrink-0">
-                                    {% if comment.user_id != current_user.id %}
-                                        <form method="POST" action="{{ url_for('feed.report_comment', comment_id=comment.id) }}">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="text-gray-400 hover:text-amber-600 px-1" title="Report comment" aria-label="Report comment">
-                                                <i class="fa-regular fa-flag"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                    {% if comment.user_id == current_user.id or post.user_id == current_user.id or current_user.is_admin %}
-                                        <form method="POST" action="{{ url_for('feed.delete_comment', comment_id=comment.id) }}"
-                                              onsubmit="return confirm('Delete this comment?');">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="text-gray-400 hover:text-red-600 px-1" title="Delete comment" aria-label="Delete comment">
-                                                <i class="fa-regular fa-trash-can"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-
-                <form method="POST" action="{{ url_for('feed.add_comment', post_id=post.id) }}" class="flex gap-2 pt-1">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="text" name="comment_text" required maxlength="{{ comment_max }}" placeholder="Write a reply..."
-                           class="w-full text-sm p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-tealLight" aria-label="Reply">
-                    <button type="submit" class="px-4 py-1.5 bg-tealDark text-white text-sm rounded-lg hover:bg-navy">Reply</button>
-                </form>
-            </div>
-        </article>
-        {% else %}
-        <div class="bg-white p-8 rounded-2xl shadow border border-gray-100 text-center text-gray-400 text-sm">
-            No posts here yet. Be the first to post!
+            {% if comment.user_id == g.user.id or post.user_id == g.user.id or g.user.is_admin %}
+            <form action="{{ url_for('feed.delete_comment', comment_id=comment.id) }}" method="POST" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold p-1">✕</button>
+            </form>
+            {% endif %}
+          </div>
         </div>
         {% endfor %}
-    </div>
 
-    <!-- Pagination -->
-    {% if pagination.pages > 1 %}
-    <div class="flex justify-between items-center mt-5 text-sm">
-        {% if pagination.has_prev %}
-            <a href="{{ url_for('feed.view_feed', page=pagination.prev_num, category=category) }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-100">&larr; Newer</a>
-        {% else %}<span></span>{% endif %}
-        <span class="text-gray-500">Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        {% if pagination.has_next %}
-            <a href="{{ url_for('feed.view_feed', page=pagination.next_num, category=category) }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-100">Older &rarr;</a>
-        {% else %}<span></span>{% endif %}
+        <!-- Add Comment Form -->
+        <form action="{{ url_for('feed.add_comment', post_id=post.id) }}" method="POST" class="mt-2 flex gap-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="text" name="comment_text" class="flex-grow px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-tealLight focus:outline-none bg-white" placeholder="Write a comment..." maxlength="{{ comment_max }}" required>
+          <button type="submit" class="px-4 py-2 bg-tealDark hover:bg-tealLight hover:text-navy text-white text-xs font-semibold rounded-xl transition">Send</button>
+        </form>
+      </div>
+
     </div>
-    {% endif %}
-</section>
+    {% else %}
+    <div class="bg-white p-12 rounded-2xl shadow-md text-center text-gray-400 border border-gray-100">
+      <i class="fa-regular fa-comment-dots text-4xl mb-2"></i>
+      <p class="text-sm font-medium">No posts visible in the community feed yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
 {% endblock %}

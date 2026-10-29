@@ -10,16 +10,18 @@
     <p class="text-sm text-gray-500 mb-4">Ticket logged into the system.</p>
 
     <div class="bg-bgLight p-3 rounded-xl text-left text-sm space-y-1.5 mb-5 border">
-        <p><strong>Submission ID:</strong> <span class="text-tealDark">{{ submission.ticket_id }}</span></p>
-        <p><strong>Category:</strong> <span>{{ submission.category }}</span></p>
-        <p><strong>Rating:</strong> <span class="text-amber-500">{{ submission.rating }} / 5 &#9733;</span></p>
+        <p><strong>Submission ID:</strong> <span class="text-tealDark">{{ feedback.id }}</span></p>
+        <p><strong>Category:</strong> <span>{{ feedback.category }}</span></p>
+        <p><strong>Rating:</strong> <span class="text-amber-500">{{ feedback.rating }} / 5 &#9733;</span></p>
     </div>
 
     <div class="space-y-2 text-sm">
-        <a href="{{ url_for('student_dashboard') }}" class="block w-full py-2.5 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition">
+        <!-- Yahan student_dashboard ko feedback.dashboard kar diya hai -->
+        <a href="{{ url_for('feedback.dashboard') }}" class="block w-full py-2.5 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition">
             Back to Dashboard
         </a>
-        <a href="{{ url_for('my_submissions') }}" class="block w-full py-2.5 bg-tealLight text-navy font-bold rounded-xl hover:bg-tealDark hover:text-white transition">
+        <!-- Yahan my_submissions ko feedback.my_submissions kar diya hai -->
+        <a href="{{ url_for('feedback.my_submissions') }}" class="block w-full py-2.5 bg-tealLight text-navy font-bold rounded-xl hover:bg-tealDark hover:text-white transition">
             View My Submissions
         </a>
     </div>

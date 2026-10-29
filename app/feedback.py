@@ -1,11 +1,11 @@
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for, session
 from sqlalchemy import func, select
 
 from app import db
-from app.models import DEPARTMENTS, FEEDBACK_CATEGORIES, STATUSES, Feedback
+from app.models import DEPARTMENTS, FEEDBACK_CATEGORIES, STATUSES, Feedback, User
 from app.utils import admin_required, login_required
 
-feedback_bp = Blueprint("feedback", __name__, url_prefix="/feedback")
+feedback_bp = Blueprint('feedback', __name__, url_prefix='/feedback', template_folder='templates')
 
 TITLE_MIN, TITLE_MAX = 3, 150
 DESC_MIN, DESC_MAX = 10, 2000
@@ -19,6 +19,16 @@ def pick(value, allowed):
 
 
 # ---------------------------------------------------------------- student side
+
+@feedback_bp.route("/dashboard")
+@login_required
+def dashboard():
+    if g.user.is_admin:
+        return redirect(url_for("admin.dashboard"))
+    # Renders the student dashboard template containing links to submit, view submissions, etc.
+    return render_template("student_dashboard.html")
+
+
 @feedback_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def submit():
@@ -65,24 +75,14 @@ def success(feedback_id):
     return render_template("feedback_success.html", item=item)
 
 
-@feedback_bp.route("/mine")
+@feedback_bp.route('/submissions')
 @login_required
 def my_submissions():
-    category = pick(request.args.get("category"), FEEDBACK_CATEGORIES)
-    status = pick(request.args.get("status"), STATUSES)
-    page = request.args.get("page", 1, type=int)
-
-    query = Feedback.query.filter_by(user_id=g.user.id)
-    if category:
-        query = query.filter_by(category=category)
-    if status:
-        query = query.filter_by(status=status)
-    pagination = query.order_by(Feedback.created_at.desc(), Feedback.id.desc()).paginate(
-        page=page, per_page=PER_PAGE, error_out=False)
-
-    return render_template("my_submissions.html", pagination=pagination, items=pagination.items,
-                           category=category, status=status,
-                           categories=FEEDBACK_CATEGORIES, statuses=STATUSES)
+    user_id = g.user.id
+    # Sirf current logged-in user ki submissions fetch hongi
+    submissions = Feedback.query.filter_by(user_id=user_id).order_by(Feedback.created_at.desc()).all()
+    
+    return render_template('my_submissions.html', submissions=submissions)
 
 
 # ----------------------------------------------------------------- admin side

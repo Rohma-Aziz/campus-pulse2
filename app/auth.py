@@ -1,12 +1,7 @@
 import re
-
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
-
 from app import db
 from app.models import DEPARTMENTS, User
-from flask import render_template
-from flask_login import login_required, current_user
-
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -15,71 +10,67 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 @auth_bp.route("/signup", methods=["GET", "POST"])
 def signup():
-    """Student sign up only. Admin accounts are created with the create-admin command."""
-    if g.user:
-        return redirect(url_for("home"))
-
     if request.method == "POST":
-        name = (request.form.get("name") or "").strip()
-        email = (request.form.get("email") or "").strip().lower()
-        password = request.form.get("password") or ""
+        name = request.form.get("name")
+        email = request.form.get("email").strip().lower()
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
         department = request.form.get("department")
-        year = request.form.get("year", type=int)
 
-        error = None
-        if not 2 <= len(name) <= 100:
-            error = "Please enter your name."
-        elif not EMAIL_RE.match(email) or len(email) > 120:
-            error = "Please enter a valid email."
-        elif len(password) < 8:
-            error = "Password must be at least 8 characters."
-        elif department not in DEPARTMENTS:
-            error = "Please choose a department."
-        elif year is not None and not 1 <= year <= 4:
-            error = "Year must be between 1 and 4."
-        elif User.query.filter_by(email=email).first():
-            error = "An account with that email already exists."
-
-        if error:
-            flash(error, "danger")
-        else:
-            user = User(name=name, email=email, department=department, year=year, role="student")
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-            flash("Account created. Please log in.", "success")
-            return redirect(url_for("auth.login"))
-
-    return render_template("signup.html")
+        if password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("auth.signup"))
+        
+        # ... baaki database creation logic ...
+        
+    return render_template("signup.html", DEPARTMENTS=DEPARTMENTS)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if g.user:
-        return redirect(url_for("home"))
-
     if request.method == "POST":
-        email = (request.form.get("email") or "").strip().lower()
-        password = request.form.get("password") or ""
+        email = request.form.get("email").strip().lower()
+        password = request.form.get("password")
+        selected_role = request.form.get("role")  # 'student' ya 'admin'
+
         user = User.query.filter_by(email=email).first()
 
         if user and user.check_password(password):
-            session.clear()  # prevents session fixation
+            # Role validation check
+            if selected_role == "admin" and not user.is_admin:
+                flash("Access denied. This account is not registered as an Admin.", "danger")
+                return redirect(url_for("auth.login"))
+            
+            if selected_role == "student" and user.is_admin:
+                flash("Please select Admin role to login with this account.", "danger")
+                return redirect(url_for("auth.login"))
+
+            session.clear()
             session["user_id"] = user.id
-            return redirect(url_for("home"))  # role check happens in home()
-
-        flash("Invalid email or password.", "danger")  # same message for both cases
-
+            
+            flash("Logged in successfully!", "success")
+            
+            # Role ke mutabiq redirect karein
+            if user.is_admin:
+                return redirect(url_for("admin.dashboard"))
+            else:
+                return redirect(url_for("feedback.dashboard"))
+        
+        flash("Invalid email or password.", "danger")
+        
     return render_template("login.html")
 
 
-@auth_bp.post("/logout")
+@auth_bp.route("/logout", methods=["GET","POST"])
 def logout():
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("home"))
 
-@auth_bp.route('/dashboard')  # or @app.route('/profile') depending on your blueprint setup
-@login_required
+
+@auth_bp.route('/dashboard')
 def profile():
-    return render_template('profile.html', user=current_user)
+    if not g.user:
+        flash("Please log in to view your dashboard.", "warning")
+        return redirect(url_for("auth.login"))
+    return render_template('profile.html', user=g.user)
