@@ -31,8 +31,14 @@
         </div>
         <div>
             <label for="confirm_password" class="block font-semibold text-navy mb-1">Confirm Password</label>
-            <input type="password" id="confirm_password" required placeholder="Re-enter password"
-                   class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+            <div class="relative">
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter password"
+                       class="w-full p-2.5 pr-10 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">
+                <button type="button" onclick="togglePassword('confirm_password', this)"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy" aria-label="Show or hide password">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
             <p id="match-error" class="hidden text-red-600 text-xs mt-1">Passwords do not match.</p>
         </div>
         <div>

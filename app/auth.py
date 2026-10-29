@@ -11,17 +11,51 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 @auth_bp.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email").strip().lower()
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
-        department = request.form.get("department")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        department = request.form.get("department", "").strip()
+        year_val = request.form.get("year", "").strip()
 
+        # Check password match
         if password != confirm_password:
             flash("Passwords do not match.", "danger")
-            return redirect(url_for("auth.signup"))
-        
-        # ... baaki database creation logic ...
+            return render_template("signup.html", DEPARTMENTS=DEPARTMENTS)
+
+        # Validate minimum length
+        if len(password) < 8:
+            flash("Password must be at least 8 characters long.", "danger")
+            return render_template("signup.html", DEPARTMENTS=DEPARTMENTS)
+
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Email address is already registered. Please login.", "warning")
+            return redirect(url_for("auth.login"))
+
+        # Convert year to int if provided, else None
+        year = int(year_val) if year_val.isdigit() else None
+
+        # Create new student user
+        new_user = User(
+            name=name,
+            email=email,
+            role="student",
+            department=department,
+            year=year
+        )
+        new_user.set_password(password)
+
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Account created successfully! Please log in with your credentials.", "success")
+            return redirect(url_for("auth.login"))
+        except Exception as e:
+            db.session.rollback()
+            flash("An error occurred while creating your account. Please try again.", "danger")
+            return render_template("signup.html", DEPARTMENTS=DEPARTMENTS)
         
     return render_template("signup.html", DEPARTMENTS=DEPARTMENTS)
 
