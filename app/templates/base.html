@@ -184,6 +184,7 @@
                         <!-- Yahan Admin ke liye Community Feed link add kiya gaya hai -->
                         <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Community Feed</a>
                         <a href="{{ url_for('analytics.analytics_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Analytics</a>
+                        <a href="{{ url_for('ff.admin_list') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Faculty Feedback</a>
                     {% else %}
                         <!-- Student Specific Options -->
                         <a href="{{ url_for('feedback.dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Student Dashboard</a>

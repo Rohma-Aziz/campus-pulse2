@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Faculty Feedback Forms{% endblock %}
+
+{% block content %}
+<section class="w-full bg-white p-6 rounded-2xl shadow-lg border border-gray-100 my-4">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-5 pb-4 border-b">
+        <div>
+            <h2 class="text-xl font-bold text-navy">Faculty Feedback Forms</h2>
+            <p class="text-sm text-gray-500">
+                {% if super_admin %}All departments{% else %}{{ current_user.department }} department{% endif %}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            {% if super_admin %}
+            <form method="GET" class="flex items-center gap-2">
+                <select name="department" onchange="this.form.submit()" class="p-2 border rounded-lg text-sm bg-white">
+                    <option value="">All departments</option>
+                    {% for d in DEPARTMENTS %}<option value="{{ d }}" {{ 'selected' if dept == d }}>{{ d }}</option>{% endfor %}
+                </select>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('ff.admin_new') }}" class="px-4 py-2 bg-tealDark hover:bg-navy text-white rounded-lg text-sm font-semibold transition">
+                <i class="fa-solid fa-plus mr-1"></i> Generate New Form
+            </a>
+        </div>
+    </div>
+
+    {% if not forms %}
+        <p class="text-center text-gray-500 py-10 text-sm">No forms yet. Click <strong>Generate New Form</strong> to create one for a semester.</p>
+    {% else %}
+    <div class="space-y-3">
+        {% for f in forms %}
+        <div class="border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-bold text-navy">{{ f.title }}</h3>
+                    {% if f.is_open %}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">Published</span>
+                    {% elif f.opened_at %}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 font-semibold">Closed</span>
+                    {% else %}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">Draft (hidden)</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-500 mt-1">
+                    {{ f.department }} &middot; Semester {{ f.semester }} &middot; {{ f.session_label }}
+                    &middot; {{ f.subjects|length }} faculty &middot; {{ f.questions|length }} questions
+                    &middot; <strong>{{ counts.get(f.id, 0) }}</strong> response(s)
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2 text-sm">
+                <form method="POST" action="{{ url_for('ff.admin_toggle', form_id=f.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if f.is_open %}
+                        <button class="px-3 py-1.5 bg-gray-600 hover:bg-gray-800 text-white rounded-lg">Close</button>
+                    {% else %}
+                        <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">
+                            {{ 'Re-publish' if f.opened_at else 'Publish to students' }}
+                        </button>
+                    {% endif %}
+                </form>
+                <a href="{{ url_for('ff.admin_analytics', form_id=f.id) }}" class="px-3 py-1.5 bg-navy hover:bg-tealDark text-white rounded-lg">
+                    <i class="fa-solid fa-chart-column mr-1"></i> Analytics
+                </a>
+                <form method="POST" action="{{ url_for('ff.admin_delete', form_id=f.id) }}"
+                      onsubmit="return confirm('Delete this form and all {{ counts.get(f.id, 0) }} response(s)? This cannot be undone.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="px-3 py-1.5 border border-red-300 text-red-600 hover:bg-red-50 rounded-lg">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

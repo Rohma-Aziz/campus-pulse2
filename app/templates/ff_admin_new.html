@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Generate Faculty Feedback Form{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-3xl bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 my-4" style="border-top: 4px solid #216B83;">
+    <div class="flex justify-between items-center mb-1">
+        <h2 class="text-xl font-bold text-navy">Generate Faculty Feedback Form</h2>
+        <a href="{{ url_for('ff.admin_list') }}" class="text-sm text-gray-500 hover:text-navy">&larr; Back</a>
+    </div>
+    <p class="text-sm text-gray-500 mb-5">The form is created hidden. Students see it only after you press <strong>Publish</strong>.</p>
+
+    <form method="POST" class="space-y-5 text-sm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block font-semibold text-navy mb-1">Department</label>
+                {% if super_admin %}
+                <select name="department" required class="w-full p-2.5 border rounded-lg bg-white">
+                    <option value="" disabled {{ 'selected' if not form.get('department') }}>Select</option>
+                    {% for d in departments %}<option value="{{ d }}" {{ 'selected' if form.get('department') == d }}>{{ d }}</option>{% endfor %}
+                </select>
+                {% else %}
+                <div class="p-2.5 border rounded-lg bg-gray-50 text-gray-700">{{ current_user.department }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label class="block font-semibold text-navy mb-1">Semester</label>
+                <select name="semester" required class="w-full p-2.5 border rounded-lg bg-white">
+                    <option value="" disabled {{ 'selected' if not form.get('semester') }}>Select</option>
+                    {% for s in semesters %}<option value="{{ s }}" {{ 'selected' if form.get('semester') == s|string }}>Semester {{ s }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block font-semibold text-navy mb-1">Academic session</label>
+                <input name="session_label" required maxlength="20" placeholder="2026-27" value="{{ form.get('session_label', '') }}"
+                       class="w-full p-2.5 border rounded-lg">
+            </div>
+        </div>
+
+        <div>
+            <label class="block font-semibold text-navy mb-1">Title <span class="font-normal text-gray-400">(optional, auto-generated if empty)</span></label>
+            <input name="title" maxlength="150" value="{{ form.get('title', '') }}" class="w-full p-2.5 border rounded-lg">
+        </div>
+
+        <div>
+            <label class="block font-semibold text-navy mb-1">Faculty &amp; subjects students will rate</label>
+            <div id="rows" class="space-y-2">
+                {% set fl = form.getlist('faculty') if form.getlist else [] %}
+                {% set sl = form.getlist('subject') if form.getlist else [] %}
+                {% for i in range([fl|length, 1]|max) %}
+                <div class="row flex gap-2">
+                    <input name="faculty" placeholder="Faculty name" maxlength="100" value="{{ fl[i] if i < fl|length else '' }}" class="flex-1 p-2.5 border rounded-lg">
+                    <input name="subject" placeholder="Subject / course" maxlength="120" value="{{ sl[i] if i < sl|length else '' }}" class="flex-1 p-2.5 border rounded-lg">
+                    <button type="button" class="rm px-3 text-red-500 hover:bg-red-50 rounded-lg" title="Remove">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="add-row" class="mt-2 text-tealDark hover:text-navy font-semibold"><i class="fa-solid fa-plus mr-1"></i>Add another faculty</button>
+        </div>
+
+        <div>
+            <label class="block font-semibold text-navy mb-1">Questions <span class="font-normal text-gray-400">(each rated 1 to 5)</span></label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5 bg-gray-50 border rounded-lg p-3">
+                {% set picked = form.getlist('default_q') if form.getlist else [] %}
+                {% for q in default_questions %}
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="default_q" value="{{ loop.index0 }}"
+                           {{ 'checked' if (not form) or (loop.index0|string in picked) }}>
+                    <span>{{ q }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <textarea name="custom_questions" rows="2" placeholder="Add your own questions here, one per line (optional)"
+                      class="w-full mt-2 p-2.5 border rounded-lg">{{ form.get('custom_questions', '') }}</textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition">
+            Generate Form
+        </button>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const rows = document.getElementById('rows');
+    document.getElementById('add-row').addEventListener('click', function () {
+        if (rows.children.length >= 15) return;
+        const clone = rows.children[0].cloneNode(true);
+        clone.querySelectorAll('input').forEach(function (i) { i.value = ''; });
+        rows.appendChild(clone);
+    });
+    rows.addEventListener('click', function (e) {
+        if (e.target.classList.contains('rm') && rows.children.length > 1) e.target.closest('.row').remove();
+    });
+</script>
+{% endblock %}
