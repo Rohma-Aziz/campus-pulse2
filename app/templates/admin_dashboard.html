@@ -18,6 +18,9 @@
         <a href="{{ url_for('analytics.analytics_dashboard') }}" class="w-full py-3 bg-navy hover:bg-tealDark text-white font-semibold rounded-xl transition block">
             <i class="fa-solid fa-chart-pie mr-2 text-tealLight"></i> Analytics &amp; Reports
         </a>
+                <a href="{{ url_for('ff.admin_list') }}" class="w-full py-3 bg-tealDark hover:bg-tealLight text-white rounded-xl font-medium transition block">
+            <i class="fa-solid fa-chalkboard-user mr-2"></i> Faculty Feedback Forms
+        </a>
         <form method="POST" action="{{ url_for('auth.logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="w-full py-2.5 border border-gray-300 hover:bg-red-50 hover:text-red-600 text-gray-700 rounded-xl transition font-medium">

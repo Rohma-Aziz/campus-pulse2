@@ -11,9 +11,13 @@
             <div class="border-l-4 border-amber-400 bg-gray-50 p-4 rounded-xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">{{ item.category }}</span>
-                    <p class="text-gray-800 font-medium mt-2 text-lg">"{{ item.title or item.description }}"</p>
+                    <p class="text-gray-800 font-medium mt-2 text-lg">
+                        "{{ item.content }}"
+                    </p>
                     <div class="text-xs text-gray-500 mt-1">
-                        Author ID: {{ item.user_id }} | Reports: {{ item.reports or 0 }}
+                        Author ID: {{ item.user_id }}
+                        | Reports: {{ report_counts.get(item.id, 0) }}
+                        | Visibility: {{ "Hidden" if item.is_hidden else "Visible" }}
                     </div>
                 </div>
 

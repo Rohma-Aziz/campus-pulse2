@@ -77,11 +77,27 @@
     const catValues = JSON.parse(dataContainer.dataset.catValues || '[]');
 
     // Department Chart
+    // Short names for the chart only (full name still shows when you hover a bar)
+    const SHORT = {
+        'Computer Science & Engineering (CSE)': 'CSE',
+        'CSE with Artificial Intelligence & Data Science (AI & DS)': 'AI & DS',
+        'CSE with Artificial Intelligence & Machine Learning (AI & ML)': 'AI & ML',
+        'CSE with Cyber Security': 'Cyber Sec',
+        'Computer Science & Information Technology (CSIT)': 'CSIT',
+        'Civil': 'Civil',
+        'Mechanical': 'Mech',
+        'Electrical': 'Electrical',
+        'Electrical & Electronics': 'EEE',
+        'Electrical & Communication': 'ECE'
+    };
+    const shortDeptLabels = deptLabels.map(function (d) { return SHORT[d] || d; });
+
+    // Department Chart
     const deptCtx = document.getElementById('deptChart').getContext('2d');
     new Chart(deptCtx, {
         type: 'bar',
         data: {
-            labels: deptLabels,
+            labels: shortDeptLabels,
             datasets: [{
                 label: 'Average Rating',
                 data: deptValues,
@@ -92,6 +108,13 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function (items) { return deptLabels[items[0].dataIndex]; }
+                    }
+                }
+            },
             scales: { y: { beginAtZero: true, max: 5 } }
         }
     });

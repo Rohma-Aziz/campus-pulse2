@@ -16,7 +16,8 @@ def create_app():
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    if not (app.config['SQLALCHEMY_DATABASE_URI'] or '').startswith('sqlite'):
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "connect_args": {"ssl": {"ca": os.path.join(base_dir, "ca.pem")}}
     }
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -35,6 +36,7 @@ def create_app():
     from app.admin import admin_bp
     from app.feedback import feedback_bp
     from app.routes.analytics_routes import analytics_bp
+    from app.faculty_feedback import ff_bp
     
     # Blueprints ko sirf ek baar register karein
     app.register_blueprint(auth_bp)
@@ -42,6 +44,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(analytics_bp)
+    app.register_blueprint(ff_bp)
 
     @app.before_request
     def load_user():
@@ -71,17 +74,15 @@ def create_app():
     @app.cli.command('create-admin')
     @click.argument('email')
     @click.argument('name')
+    @click.option('--department', default='Admin',
+                  help='Department this admin manages (CSE, AIDS, ECE...). Default "Admin" = super admin.')
     @click.password_option()
-    def create_admin(email, name, password):
+    def create_admin(email, name, password, department):
         email = email.strip().lower()
         if User.query.filter_by(email=email).first():
             click.echo('A user with that email already exists.')
             return
-        admin = User(name=name.strip(), email=email, role='admin', department='Admin')
-        admin.set_password(password)
-        db.session.add(admin)
-        db.session.commit()
-        click.echo(f'Admin created: {email}')
+        admin = User(name=name.strip(), email=email, role='admin', department=department)
 
     with app.app_context():
         db.create_all()
