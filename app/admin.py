@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.models import Feedback, User, db
+from sqlalchemy import func, or_
 from functools import wraps
+from app.models import Feedback, User, Post, Report, db
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin', template_folder='templates')
 
@@ -74,30 +75,82 @@ def update_issue(feedback_id):
     flash(f"Issue CP-{item.id:04d} updated successfully!", "success")
     return redirect(url_for('admin.manage_issues'))
 
+
+
+
+
 @admin_bp.route('/moderation', methods=['GET'])
 @admin_required
 def moderation_queue():
-    # Flagged ya reported items fetch karein
-    flagged_items = Feedback.query.filter((Feedback.is_flagged == True) | (Feedback.reports > 0) | (Feedback.status == 'Pending')).all()
-    return render_template('moderation.html', flagged_items=flagged_items)
+    # Get IDs of posts that have been reported
+    reported_ids = db.session.query(
+        Report.post_id
+    ).distinct().all()
+
+    reported_ids = [row[0] for row in reported_ids]
+
+    # Show hidden posts and posts that have been reported
+    if reported_ids:
+        flagged_items = Post.query.filter(
+            or_(
+                Post.is_hidden.is_(True),
+                Post.id.in_(reported_ids)
+            )
+        ).order_by(Post.created_at.desc()).all()
+    else:
+        flagged_items = Post.query.filter_by(
+            is_hidden=True
+        ).order_by(Post.created_at.desc()).all()
+
+    # Count reports for each post
+    report_counts = dict(
+        db.session.query(
+            Report.post_id,
+            func.count(Report.id)
+        ).group_by(Report.post_id).all()
+    )
+
+    return render_template(
+        'moderation.html',
+        flagged_items=flagged_items,
+        report_counts=report_counts
+    )
+
 
 @admin_bp.route('/moderation/approve/<int:item_id>', methods=['POST'])
 @admin_required
 def approve_content(item_id):
-    item = Feedback.query.get_or_404(item_id)
-    item.is_flagged = False
-    item.reports = 0
+    item = Post.query.get_or_404(item_id)
+
+    # Make the post visible again
     item.is_hidden = False
+
+    # Clear the reports after admin review
+    Report.query.filter_by(post_id=item.id).delete(
+        synchronize_session=False
+    )
+
     db.session.commit()
+
     flash("Content approved and made visible.", "success")
     return redirect(url_for('admin.moderation_queue'))
+
+
 
 @admin_bp.route('/moderation/remove/<int:item_id>', methods=['POST'])
 @admin_required
 def remove_content(item_id):
-    item = Feedback.query.get_or_404(item_id)
+    item = Post.query.get_or_404(item_id)
+
+    # Hide the post from the community feed
     item.is_hidden = True
-    item.is_flagged = False
+
+    # Clear reports after the moderation decision
+    Report.query.filter_by(post_id=item.id).delete(
+        synchronize_session=False
+    )
+
     db.session.commit()
+
     flash("Content removed/hidden successfully.", "info")
     return redirect(url_for('admin.moderation_queue'))

@@ -19,7 +19,7 @@ def check_content_locally(text):
 
 
 # Add your own extra words
-profanity.add_censor_words(["sala", "kutta", "pagal", "gadha"])
+profanity.add_censor_words(["sala", "pagal", "gadha", "bad word", "offensive"])
 
 
 

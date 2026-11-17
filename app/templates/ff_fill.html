@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ form.title }}{% endblock %}
+
+{% block content %}
+<section class="w-full max-w-4xl bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 my-4" style="border-top: 4px solid #216B83;">
+    <div class="flex justify-between items-start mb-1 gap-3">
+        <h2 class="text-xl font-bold text-navy">{{ form.title }}</h2>
+        <a href="{{ url_for('feedback.submit') }}" class="text-sm text-gray-500 hover:text-navy whitespace-nowrap">&larr; Back</a>
+    </div>
+    <p class="text-sm text-gray-500 mb-5">
+        <i class="fa-solid fa-user-secret mr-1"></i>Your response is anonymous: the admin sees only combined results.
+        Rate every question from <strong>1 (very poor)</strong> to <strong>5 (excellent)</strong>.
+    </p>
+
+    <form method="POST" class="space-y-6 text-sm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {% for s in form.subjects %}
+        <div class="border rounded-xl overflow-hidden">
+            <div class="bg-navy text-white px-4 py-2.5">
+                <span class="font-bold">{{ s.faculty_name }}</span>
+                <span class="text-tealLight"> &middot; {{ s.subject_name }}</span>
+            </div>
+            <div class="divide-y">
+                {% for q in form.questions %}
+                {% set name = 'r_%d_%d'|format(s.id, q.id) %}
+                <div class="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span class="text-gray-800">{{ q.text }}</span>
+                    <div class="flex gap-1.5 shrink-0">
+                        {% for v in [1,2,3,4,5] %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="{{ name }}" value="{{ v }}" required class="peer sr-only"
+                                   {{ 'checked' if posted.get(name) == v|string }}>
+                            <span class="w-9 h-9 flex items-center justify-center border rounded-lg font-semibold text-gray-600
+                                         peer-checked:bg-tealDark peer-checked:text-white peer-checked:border-tealDark
+                                         peer-focus-visible:ring-2 peer-focus-visible:ring-tealLight hover:bg-gray-100">{{ v }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="px-4 py-3">
+                    <textarea name="c_{{ s.id }}" rows="2" maxlength="500" placeholder="Comments about {{ s.faculty_name }} (optional)"
+                              class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-tealLight outline-none">{{ posted.get('c_%d'|format(s.id), '') }}</textarea>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full py-3 bg-tealDark text-white font-bold rounded-xl hover:bg-navy transition"
+                onclick="return confirm('Submit your feedback? You cannot change it afterwards.');">
+            Submit Faculty Feedback
+        </button>
+    </form>
+</section>
+{% endblock %}

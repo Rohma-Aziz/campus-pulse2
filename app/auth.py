@@ -17,6 +17,7 @@ def signup():
         confirm_password = request.form.get("confirm_password", "")
         department = request.form.get("department", "").strip()
         year_val = request.form.get("year", "").strip()
+        semester = request.form.get("semester", "").strip()
 
         # Check password match
         if password != confirm_password:
@@ -43,7 +44,8 @@ def signup():
             email=email,
             role="student",
             department=department,
-            year=year
+            year=year,
+            semester = semester
         )
         new_user.set_password(password)
 
@@ -108,3 +110,4 @@ def profile():
         flash("Please log in to view your dashboard.", "warning")
         return redirect(url_for("auth.login"))
     return render_template('profile.html', user=g.user)
+

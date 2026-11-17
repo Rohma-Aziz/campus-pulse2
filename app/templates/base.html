@@ -22,6 +22,142 @@
             }
         }
     </script>
+    
+<style>
+    :root,
+    html[data-theme="midnight"] {
+        --page: #F4F7FA;
+        --panel: #FFFFFF;
+        --text: #142D4E;
+        --muted: #64748B;
+        --accent: #216B83;
+        --soft: #E2F2F3;
+        --border: #D9E4EC;
+        --shadow: rgba(20,45,78,0.12);
+    }
+
+    html[data-theme="bright"] {
+        --page: #FFFFFF;
+        --panel: #F8FAFC;
+        --text: #172033;
+        --muted: #64748B;
+        --accent: #2563EB;
+        --soft: #DBEAFE;
+        --border: #DCE4EF;
+        --shadow: rgba(15,23,42,0.08);
+    }
+
+    html[data-theme="dark"] {
+        --page: #101827;
+        --panel: #1B293B;
+        --text: #F1F5F9;
+        --muted: #B2C0D0;
+        --accent: #39B7A5;
+        --soft: #253D4D;
+        --border: #34465B;
+        --shadow: rgba(0,0,0,0.25);
+    }
+
+    html[data-theme="lavender"] {
+        --page: #F6F3FF;
+        --panel: #FFFFFF;
+        --text: #30244D;
+        --muted: #756A8D;
+        --accent: #8064D8;
+        --soft: #EDE5FF;
+        --border: #DED4F5;
+        --shadow: rgba(72,50,120,0.10);
+    }
+
+    html[data-theme="sunset"] {
+        --page: #FFF7F0;
+        --panel: #FFFFFF;
+        --text: #482B2B;
+        --muted: #876B66;
+        --accent: #E87552;
+        --soft: #FFE5D8;
+        --border: #F1D6C9;
+        --shadow: rgba(120,60,40,0.10);
+    }
+
+    body {
+        background-color: var(--page) !important;
+        color: var(--text);
+        transition: background-color .25s, color .25s;
+    }
+
+    main {
+        background-color: transparent;
+    }
+
+    .landing .hero,
+    .landing .section {
+        color: var(--text);
+    }
+
+    .landing .dashboard-art,
+    .landing .feature-card,
+    .landing .auth-section {
+        background-color: var(--panel);
+        color: var(--text);
+    }
+
+    .landing .hero-description,
+    .landing .section-heading p,
+    .landing .feature-card p,
+    .landing .auth-section p {
+        color: var(--muted);
+    }
+
+    .landing .hero-tag,
+    .landing .dash-chart,
+    .landing .dash-stat,
+    .landing .feature-icon {
+        background-color: var(--soft);
+    }
+
+    .landing .hero-tag,
+    .landing .hero h1 span,
+    .landing .dash-status,
+    .landing .dash-stat strong,
+    .landing .feature-icon {
+        color: var(--accent);
+    }
+
+    .landing .dashboard-art,
+    .landing .feature-card,
+    .landing .auth-section,
+    .landing .section {
+        border-color: var(--border);
+    }
+
+    .landing .dashboard-art,
+    .landing .auth-section {
+        box-shadow: 0 15px 40px var(--shadow);
+    }
+
+    #theme-picker {
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 7px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+</style>
+
+<script>
+    (function () {
+        const savedTheme = localStorage.getItem("campusPulseTheme");
+        document.documentElement.dataset.theme = savedTheme || "midnight";
+    })();
+
+    function changeCampusTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        localStorage.setItem("campusPulseTheme", theme);
+    }
+</script>
+
     {% block head %}{% endblock %}
 </head>
 <body class="bg-bgLight text-gray-800 font-sans min-h-screen flex flex-col">
@@ -48,6 +184,7 @@
                         <!-- Yahan Admin ke liye Community Feed link add kiya gaya hai -->
                         <a href="{{ url_for('feed.view_feed') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Community Feed</a>
                         <a href="{{ url_for('analytics.analytics_dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Analytics</a>
+                        <a href="{{ url_for('ff.admin_list') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Faculty Feedback</a>
                     {% else %}
                         <!-- Student Specific Options -->
                         <a href="{{ url_for('feedback.dashboard') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Student Dashboard</a>
@@ -69,6 +206,27 @@
                     <a href="{{ url_for('auth.login') }}" class="px-3 py-1.5 bg-tealDark hover:bg-tealLight hover:text-navy rounded transition font-medium">Login</a>
                     <a href="{{ url_for('auth.signup') }}" class="px-3 py-1.5 bg-tealLight text-navy hover:bg-white rounded transition font-medium">Sign Up</a>
                 {% endif %}
+                
+                <select id="theme-picker"
+                        aria-label="Choose website theme"
+                        onchange="changeCampusTheme(this.value)">
+                    <option value="midnight">Midnight Blue &amp; Teal</option>
+                    <option value="bright">Bright Mode</option>
+                    <option value="dark">Dark Mode</option>
+                    <option value="lavender">Lavender</option>
+                    <option value="sunset">Sunset</option>
+                </select>
+
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const picker = document.getElementById("theme-picker");
+                        if (picker) {
+                            picker.value =
+                                document.documentElement.dataset.theme || "midnight";
+                        }
+                    });
+                </script>
+
             </nav>
         </div>
     </header>

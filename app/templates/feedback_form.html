@@ -5,6 +5,50 @@
 <div class="w-full max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100 my-4" style="border-top: 4px solid #216B83;">
     <h4 class="text-xl font-bold mb-1" style="color: #142D4E;">Submit Feedback</h4>
     <p class="text-gray-500 text-sm mb-6">Your rating helps the college see which facilities need attention.</p>
+     <div class="mb-6 p-4 rounded-xl border border-tealLight/50 bg-tealLight/10">
+        <h5 class="font-bold text-navy text-sm mb-2"><i class="fa-solid fa-chalkboard-user mr-1"></i> Faculty feedback forms</h5>
+
+                {% if g.user.semester %}
+            <p class="mb-3 text-sm text-gray-700">
+                <i class="fa-solid fa-lock text-gray-400 mr-1"></i>
+                My current semester: <strong>Semester {{ g.user.semester }}</strong>
+            </p>
+        {% else %}
+        <form method="POST" action="{{ url_for('ff.set_semester') }}" class="flex flex-wrap items-center gap-2 mb-3 text-sm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="text-gray-700 font-medium">My current semester:</label>
+            <select name="semester" required class="p-1.5 border rounded-lg bg-white">
+                <option value="" disabled selected>Select</option>
+                {% for s in range(1, 9) %}
+                <option value="{{ s }}">Semester {{ s }}</option>
+                {% endfor %}
+            </select>
+            <button class="px-3 py-1.5 bg-navy hover:bg-tealDark text-white rounded-lg text-xs font-semibold">Save (cannot be changed later)</button>
+        </form>
+        {% endif %}
+
+        {% if not g.user.semester %}
+            <p class="text-xs text-amber-700">Select your semester to see the faculty feedback form for it.</p>
+        {% elif not faculty_forms %}
+            <p class="text-xs text-gray-500">No faculty feedback form is open for Semester {{ g.user.semester }} right now.</p>
+        {% else %}
+        <div class="space-y-2">
+            {% for f in faculty_forms %}
+            <div class="flex items-center justify-between gap-3 bg-white border rounded-lg px-3 py-2">
+                <div class="text-sm">
+                    <div class="font-semibold text-navy">{{ f.title }}</div>
+                    <div class="text-xs text-gray-500">Semester {{ f.semester }} &middot; {{ f.subjects|length }} faculty &middot; anonymous</div>
+                </div>
+                {% if f.already_submitted %}
+                    <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i>Submitted</span>
+                {% else %}
+                    <a href="{{ url_for('ff.fill', form_id=f.id) }}" class="text-xs px-3 py-1.5 bg-tealDark hover:bg-navy text-white rounded-lg font-semibold whitespace-nowrap">Fill form</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
     
     <form method="POST" class="space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -1,22 +1,428 @@
+
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 
+{% block head %}
+<style>
+    .landing {
+        width: 100%;
+        color: var(--text);
+    }
+
+    .hero {
+        min-height: 470px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        align-items: center;
+        gap: 45px;
+        padding: 55px 10px;
+    }
+
+    .hero-tag {
+        display: inline-block;
+        padding: 8px 15px;
+        border-radius: 30px;
+        background: var(--soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .hero h1 {
+        font-size: clamp(38px, 5vw, 62px);
+        line-height: 1.12;
+        font-weight: 800;
+        margin-bottom: 22px;
+        letter-spacing: -1.5px;
+    }
+
+    .hero h1 span {
+        color: var(--accent);
+    }
+
+    .hero-description {
+        font-size: 17px;
+        line-height: 1.8;
+        color: var(--muted);
+        max-width: 570px;
+        margin-bottom: 28px;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        padding: 13px 22px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.25s;
+        display: inline-block;
+    }
+
+    .hero-btn:hover {
+        transform: translateY(-3px);
+        opacity: 0.9;
+    }
+
+    .primary-btn {
+        background: var(--accent);
+        color: white;
+    }
+
+    .secondary-btn {
+        border: 1px solid var(--accent);
+        color: var(--text);
+    }
+
+    .dashboard-art {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 22px;
+        box-shadow: 0 25px 60px var(--shadow);
+        transform: rotate(1deg);
+    }
+
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 22px;
+        font-weight: 700;
+    }
+
+    .dash-status {
+        color: var(--accent);
+        font-size: 12px;
+    }
+
+    .dash-chart {
+        height: 150px;
+        border-radius: 16px;
+        padding: 18px;
+        background: var(--soft);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        overflow: hidden;
+    }
+
+    .chart-bar {
+        flex: 1;
+        min-width: 10px;
+        border-radius: 7px 7px 2px 2px;
+        background: var(--accent);
+        opacity: 0.85;
+    }
+
+    .dash-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .dash-stat {
+        background: var(--soft);
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+    .dash-stat small {
+        color: var(--muted);
+    }
+
+    .dash-stat strong {
+        display: block;
+        color: var(--accent);
+        font-size: 23px;
+        margin-top: 8px;
+    }
+
+    .section {
+        padding: 65px 10px;
+        border-top: 1px solid var(--border);
+    }
+
+    .section-heading {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+
+    .section-heading h2 {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .section-heading p {
+        color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .feature-card {
+        padding: 25px;
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        transition: 0.25s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent);
+    }
+
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--soft);
+        color: var(--accent);
+        border-radius: 14px;
+        font-size: 21px;
+        margin-bottom: 18px;
+    }
+
+    .feature-card h3 {
+        font-size: 18px;
+        font-weight: 750;
+        margin-bottom: 10px;
+    }
+
+    .feature-card p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    .auth-section {
+        margin: 15px 0 55px;
+        padding: 45px 25px;
+        border-radius: 25px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        text-align: center;
+        box-shadow: 0 15px 40px var(--shadow);
+    }
+
+    .auth-section h2 {
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .auth-section p {
+        color: var(--muted);
+        line-height: 1.7;
+        margin-bottom: 25px;
+    }
+
+    .auth-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .landing-note {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 22px;
+    }
+
+    @media (max-width: 760px) {
+        .hero {
+            grid-template-columns: 1fr;
+            padding: 40px 5px;
+            gap: 25px;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section {
+            padding: 45px 5px;
+        }
+
+        .hero h1 {
+            font-size: 40px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="w-full max-w-lg self-center text-center bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-    <div class="w-20 h-20 bg-navy text-tealLight rounded-2xl mx-auto flex items-center justify-center text-3xl font-extrabold mb-4 shadow">
-        CP
-    </div>
-    <h2 class="text-3xl font-bold text-navy mb-2">CampusPulse</h2>
-    <p class="text-gray-600 text-sm mb-6">
-        Student Feedback &amp; Campus Community Platform
-    </p>
-    <div class="flex flex-col sm:flex-row gap-3">
-        <a href="{{ url_for('auth.signup') }}" class="w-full py-3 bg-tealDark text-white font-semibold rounded-xl hover:bg-navy transition">
-            <i class="fa-solid fa-user-plus mr-1"></i> Sign Up
-        </a>
-        <a href="{{ url_for('auth.login') }}" class="w-full py-3 bg-tealLight text-navy font-semibold rounded-xl hover:bg-tealDark hover:text-white transition">
-            <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
-        </a>
-    </div>
-</section>
+<div class="landing">
+
+    <!-- HERO / PROJECT INTRODUCTION -->
+    <section class="hero" id="home">
+        <div>
+            <span class="hero-tag">
+                <i class="fa-solid fa-graduation-cap"></i>
+                YOUR CAMPUS, YOUR VOICE
+            </span>
+
+            <h1>
+                Make Your Campus
+                <span>Better Together.</span>
+            </h1>
+
+            <p class="hero-description">
+                CampusPulse is a student feedback and campus community
+                platform that helps students share concerns, report campus
+                issues, connect with their community, and contribute to
+                meaningful improvements in campus life.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#get-started" class="hero-btn primary-btn">
+                    Get Started
+                    <i class="fa-solid fa-arrow-down ml-2"></i>
+                </a>
+
+                <a href="#features" class="hero-btn secondary-btn">
+                    Explore Features
+                </a>
+            </div>
+        </div>
+
+        <!-- Dashboard-inspired illustration -->
+        <div class="dashboard-art">
+            <div class="dash-header">
+                <span>
+                    <i class="fa-solid fa-chart-line mr-2"
+                       style="color:var(--accent)"></i>
+                    Campus Overview
+                </span>
+                <span class="dash-status">
+                    <i class="fa-solid fa-circle"></i> LIVE CONCEPT
+                </span>
+            </div>
+
+            <div class="dash-chart">
+                <div class="chart-bar" style="height:35%"></div>
+                <div class="chart-bar" style="height:55%"></div>
+                <div class="chart-bar" style="height:43%"></div>
+                <div class="chart-bar" style="height:75%"></div>
+                <div class="chart-bar" style="height:60%"></div>
+                <div class="chart-bar" style="height:90%"></div>
+                <div class="chart-bar" style="height:70%"></div>
+            </div>
+
+            <div class="dash-stats">
+                <div class="dash-stat">
+                    <small>Student Feedback</small>
+                    <strong><i class="fa-regular fa-comment-dots"></i></strong>
+                </div>
+
+                <div class="dash-stat">
+                    <small>Campus Community</small>
+                    <strong><i class="fa-solid fa-users"></i></strong>
+                </div>
+
+                <div class="dash-stat">
+                    <small>Issue Tracking</small>
+                    <strong><i class="fa-solid fa-list-check"></i></strong>
+                </div>
+
+                <div class="dash-stat">
+                    <small>Data Insights</small>
+                    <strong><i class="fa-solid fa-chart-pie"></i></strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROJECT FEATURES -->
+    <section class="section" id="features">
+        <div class="section-heading">
+            <h2>Everything Your Campus Needs</h2>
+            <p>
+                One platform to communicate, collaborate and improve
+                campus life.
+            </p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <h3>Student Feedback</h3>
+                <p>
+                    Submit feedback and report campus concerns with
+                    categories, descriptions and ratings.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-people-group"></i>
+                </div>
+                <h3>Interactive Community</h3>
+                <p>
+                    Connect with the campus community, share updates
+                    and participate in discussions through the community feed.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-chart-column"></i>
+                </div>
+                <h3>Analytics & Insights</h3>
+                <p>
+                    Explore feedback trends and campus issue insights
+                    to help administrators make informed decisions.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- LOGIN AND SIGNUP MOVED BELOW THE INTRODUCTION -->
+    <section class="auth-section" id="get-started">
+        <span class="hero-tag">LET'S GET STARTED</span>
+
+        <h2>Be a Part of the Change.</h2>
+
+        <p>
+            Sign in to continue your campus journey, or create an account
+            to join the CampusPulse community.
+        </p>
+
+        <div class="auth-buttons">
+            <a href="{{ url_for('auth.signup') }}"
+               class="hero-btn primary-btn">
+                <i class="fa-solid fa-user-plus mr-2"></i>
+                Create an Account
+            </a>
+
+            <a href="{{ url_for('auth.login') }}"
+               class="hero-btn secondary-btn">
+                <i class="fa-solid fa-right-to-bracket mr-2"></i>
+                Login to CampusPulse
+            </a>
+        </div>
+
+        <div class="landing-note">
+            Student Feedback · Campus Issues · Community · Analytics
+        </div>
+    </section>
+
+</div>
 {% endblock %}

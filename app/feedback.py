@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 from app import db
 from app.models import DEPARTMENTS, FEEDBACK_CATEGORIES, STATUSES, Feedback, User
 from app.utils import admin_required, login_required
+from app.faculty_feedback import open_forms_for_student
 
 feedback_bp = Blueprint('feedback', __name__, url_prefix='/feedback', template_folder='templates')
 
@@ -63,8 +64,8 @@ def submit():
             db.session.commit()
             return redirect(url_for("feedback.success", feedback_id=item.id))  # redirect stops double submit
 
-    return render_template("feedback_form.html", categories=FEEDBACK_CATEGORIES, form=request.form)
-
+    return render_template("feedback_form.html", categories=FEEDBACK_CATEGORIES, form=request.form,
+                           faculty_forms=open_forms_for_student(g.user))
 
 @feedback_bp.route("/<int:feedback_id>/success")
 @login_required
