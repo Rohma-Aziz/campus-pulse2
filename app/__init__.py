@@ -16,10 +16,10 @@ def create_app():
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-    if not (app.config['SQLALCHEMY_DATABASE_URI'] or '').startswith('sqlite'):
+    if 'aivencloud.com' in (app.config['SQLALCHEMY_DATABASE_URI'] or ''):
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        "connect_args": {"ssl": {"ca": os.path.join(base_dir, "ca.pem")}}
-    }
+            "connect_args": {"ssl": {"ca": os.path.join(base_dir, "ca.pem")}}
+        }
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
